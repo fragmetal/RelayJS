@@ -1,18 +1,19 @@
-const { Collection } = require("discord.js");
+const { Collection, PermissionFlagsBits } = require("discord.js");
+
+const cooldowns = new Collection();
 
 module.exports = async (client, message) => {
-    if(message.author.bot) { return }
+    if (message.author.bot) return;
 
-    const command = message.content.split(' ')[0].toLowerCase();
-    const args = message.content.split(' ').slice(1);
-    let cmd;
+    // Ensure the member data is available
+    if (!message.member) {
+        // Attempt to fetch the member if not available
+        message.member = await message.guild.members.fetch(message.author.id).catch(err => console.log("Failed to fetch member:", err));
+    }
 
-    if (client.commandes.has(command)) { cmd = client.commandes.get(command) }
-    else if(client.aliases.has(command)) { cmd = client.commandes.get(client.aliases.get(command)) }
-    if(!cmd) return;
+    // If member data is still not available, return
+    if (!message.member) return;
 
-    const props = require(`../command/${cmd.dir}/${cmd.name}`);
-    
     // COOLDOWNS & ERROR HANDLING
     if (!cooldowns.has(props.name)) { cooldowns.set(props.name, new Collection()); }
     const now = Date.now();
@@ -31,11 +32,9 @@ module.exports = async (client, message) => {
 
     // PERMISSION CHECKER
     if (props.permissions) {
-        if (!message.member.permissions.has(props.permissions)) {
-            return message.reply(`You're missing permissions : ${props.permissions.map(p => `**${p}**`).join(', ')}`)
+        // Check if permissions property exists and if member has the required permission
+        if (!message.member.permissions || !message.member.permissions.has(PermissionFlagsBits.ManageMessages)) {
+            return message.reply(`You're missing permissions: **Manage Messages**`);
         }
     }
-
-    //LOADING COMMANDS
-    cmd.run(client, message, args).catch(err => client.emit("error", err, message))
 };
