@@ -49,7 +49,8 @@ fastify.get('/', async (request, reply) => {
 });
 
 // Start Fastify server on port 8080
-fastify.listen(8080, (err, address) => {
+const PORT = 8080; // Define the port as a constant
+fastify.listen({ port: PORT }, (err, address) => { // Updated to use an options object
     if (err) {
         client.logger.error(err);
         process.exit(1);
