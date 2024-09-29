@@ -1,5 +1,5 @@
 const { Client, Collection, GatewayIntentBits } = require("discord.js");
-const fs = require('fs');
+const fastify = require('fastify')(); // Import Fastify
 
 const client = new Client({
     allowedMentions: { parse: ['users', 'roles'] },
@@ -42,3 +42,17 @@ try {
 client.logger.loader(`${client.color.chalkcolor.red('[FINISH]')} ${loadedHandlerCount} handlers loaded`)
 
 client.login(client.config.token);
+
+// Fastify route example
+fastify.get('/', async (request, reply) => {
+    return { message: 'Hello from Fastify!' };
+});
+
+// Start Fastify server on port 8080
+fastify.listen(8080, (err, address) => {
+    if (err) {
+        client.logger.error(err);
+        process.exit(1);
+    }
+    client.logger.info(`Fastify server listening at ${address}`);
+});
