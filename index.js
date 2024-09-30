@@ -5,23 +5,13 @@ const { exec } = require('child_process');
 const server = http.createServer((req, res) => {
     if (req.url === '/') {
         http.get('http://localhost:3000/', (response) => {
-            let data = '';
-
-            // Collect data from the response
-            response.on('data', chunk => {
-                data += chunk;
-            });
-
-            // When the response ends, check the status code
-            response.on('end', () => {
-                if (response.statusCode === 200) {
-                    res.writeHead(200, { 'Content-Type': 'application/json' });
-                    res.end(data);
-                } else {
-                    res.writeHead(500);
-                    res.end('Error: Server at localhost:3000 is not online. Status code: ' + response.statusCode);
-                }
-            });
+            if (response.statusCode === 200) {
+                res.writeHead(302, { Location: 'http://localhost:3000/' });
+                res.end();
+            } else {
+                res.writeHead(500);
+                res.end('Error: Server at localhost:3000 is not online. Status code: ' + response.statusCode);
+            }
         }).on('error', (error) => {
             res.writeHead(500);
             res.end('Error fetching status: ' + error.message);
@@ -39,6 +29,8 @@ const server = http.createServer((req, res) => {
         });
     } else if (req.url === '/stop') {
         // Stop the bot by calling the bot management server
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end('Stopping bot... Please wait.');
         http.get('http://localhost:3000/stop', (response) => {
             let data = '';
             response.on('data', chunk => {
@@ -54,7 +46,7 @@ const server = http.createServer((req, res) => {
         });
     } else {
         res.writeHead(404);
-        res.end('Not found');
+        res.end('Not found: The requested URL ' + req.url + ' was not found on this server.');
     }
 });
 
