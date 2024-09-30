@@ -105,12 +105,16 @@ module.exports = async (client, interaction) => {
             case 'limit_channel':
                 const channelId = tempChannel.TempChannel;
                 const channel = await interaction.guild.channels.fetch(channelId);
-                if(interaction.member.id !== tempChannel.TempOwner) {
-                    //await interaction.deferReply({ ephemeral: true });
-                    await interaction.editReply({ content: 'You are not the owner of this channel and cannot set the limit.', ephemeral: true });
+                
+                // Defer the interaction first
+                await interaction.deferReply({ ephemeral: true });
+
+                if (interaction.member.id !== tempChannel.TempOwner) {
+                    await interaction.editReply({ content: 'You are not the owner of this channel and cannot set the limit.' });
                     setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
                     return;
                 }
+
                 const modal = new ModalBuilder()
                     .setCustomId('set_channel_limit_modal')
                     .setTitle('Set Channel Limit');
