@@ -4,7 +4,7 @@
   "description": "",
   "main": "init.js",
   "scripts": {
-    "start": "node .",
+    "start": "node init.js",
     "bot": "node index.js",
     "slash": "node slash.js",
     "test": "echo \"Error: no test specified\" && exit 1"
