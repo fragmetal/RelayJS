@@ -11,14 +11,14 @@ const server = http.createServer((req, res) => {
         res.end('online.');
     } else if (req.url === '/start') {
         // Start the bot
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end('Starting bot... Please wait.');
         exec('npm run bot', (error, stdout, stderr) => {
             if (error) {
-                res.writeHead(500);
-                res.end('Error starting bot: ' + error.message);
+                console.error('Error starting bot:', error.message);
                 return;
             }
-            res.writeHead(200);
-            res.end('Bot started successfully: ' + stdout);
+            console.log('Bot started successfully:', stdout);
         });
     } else if (req.url === '/stop') {
         // Stop the bot by calling the bot management server
