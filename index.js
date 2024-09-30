@@ -1,14 +1,18 @@
 const http = require('http');
-const fs = require('fs');
-const path = require('path');
-const { logs } = require('./src/utils/logger');
 const { exec } = require('child_process');
 
 // HTTP Server
 const server = http.createServer((req, res) => {
     if (req.url === '/') {
-        res.writeHead(200, { 'Content-Type': 'text/plain' });
-        res.end('online.');
+        http.get('http://localhost:3000/', (response) => {
+            response.on('end', () => {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(data);
+            });
+        }).on('error', (error) => {
+            res.writeHead(500);
+            res.end('Error fetching status: ' + error.message);
+        });
     } else if (req.url === '/start') {
         // Start the bot
         res.writeHead(200, { 'Content-Type': 'text/plain' });

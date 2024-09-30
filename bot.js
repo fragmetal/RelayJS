@@ -1,6 +1,8 @@
 const { Client, Collection, GatewayIntentBits } = require("discord.js");
 const http = require('http');
+const fs = require('fs'); // Import fs to read files
 const { exec } = require('child_process');
+const { logs } = require('./src/utils/logger'); // Import logs from logger.js
 
 const client = new Client({
     allowedMentions: { parse: ['users', 'roles'] },
@@ -44,7 +46,41 @@ client.login(client.config.token);
 
 // HTTP Server to manage bot actions
 const server = http.createServer((req, res) => {
-    if (req.url === '/stop') {
+    if (req.url === '/public/index.html') {
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        fs.readFile('./public/index.html', (err, data) => {
+            if (err) {
+                res.writeHead(500);
+                res.end('Error reading index.html: ' + err.message);
+                return;
+            }
+            res.end(data);
+        });
+    } else if (req.url === '/public/style.css') {
+        res.writeHead(200, { 'Content-Type': 'text/css' });
+        fs.readFile('./public/style.css', (err, data) => {
+            if (err) {
+                res.writeHead(500);
+                res.end('Error reading style.css: ' + err.message);
+                return;
+            }
+            res.end(data);
+        });
+    } else if (req.url === '/public/favicon.ico') {
+        res.writeHead(200, { 'Content-Type': 'image/x-icon' });
+        fs.readFile('./public/favicon.ico', (err, data) => {
+            if (err) {
+                res.writeHead(500);
+                res.end('Error reading favicon.ico: ' + err.message);
+                return;
+            }
+            res.end(data);
+        });
+    } else if (req.url === '/logs') {
+        // Serve the logs as JSON
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ logs }));
+    } else if (req.url === '/stop') {
         client.destroy() // Gracefully shut down the bot
             .then(() => {
                 res.writeHead(200);
