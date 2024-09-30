@@ -39,3 +39,6 @@ try {
 client.logger.loader(`${client.color.chalkcolor.red('[FINISH]')} ${loadedHandlerCount} handlers loaded`);
 
 client.login(client.config.token);
+
+// Export the client for use in other files
+module.exports = client;

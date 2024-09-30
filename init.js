@@ -2,7 +2,8 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { logs } = require('./src/utils/logger');
-
+const client = require('./index'); // Import the client instance
+const { exec } = require('child_process');
 
 // HTTP Server
 const server = http.createServer((req, res) => {
@@ -32,25 +33,25 @@ const server = http.createServer((req, res) => {
         res.end(JSON.stringify({ logs }));
     } else if (req.url === '/start-bot') {
         // Start the bot
-        client.login(client.config.token)
-            .then(() => {
-                res.writeHead(200);
-                res.end('Bot started successfully');
-            })
-            .catch(err => {
+        exec('npm run bot', (error, stdout, stderr) => {
+            if (error) {
                 res.writeHead(500);
-                res.end('Error starting bot: ' + err.message);
-            });
+                res.end('Error starting bot: ' + error.message);
+                return;
+            }
+            res.writeHead(200);
+            res.end('Bot started successfully: ' + stdout);
+        });
     } else if (req.url === '/stop-bot') {
-        // Stop the bot
-        client.destroy()
+        // Stop the bot gracefully
+        client.destroy() // Gracefully shut down the bot
             .then(() => {
                 res.writeHead(200);
-                res.end('Bot stopped successfully');
+                res.end('Bot stopped successfully.');
             })
-            .catch(err => {
+            .catch(error => {
                 res.writeHead(500);
-                res.end('Error stopping bot: ' + err.message);
+                res.end('Error stopping bot: ' + error.message);
             });
     } else {
         res.writeHead(404);
@@ -60,5 +61,5 @@ const server = http.createServer((req, res) => {
 
 // Start the server
 server.listen(8080, '0.0.0.0', () => {
-    client.logger.loader(`${client.color.chalkcolor.red('[ HTTP ]')} Server running`);
+    console.log('Server running on http://0.0.0.0:8080');
 });
