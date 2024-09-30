@@ -6,30 +6,9 @@ const { exec } = require('child_process');
 
 // HTTP Server
 const server = http.createServer((req, res) => {
-    if (req.url === '/index') {
-        // Serve the main HTML file
-        fs.readFile(path.join(__dirname, 'public', 'index.html'), (err, data) => {
-            if (err) {
-                res.writeHead(500);
-                return res.end('Error loading index.html');
-            }
-            res.writeHead(200, { 'Content-Type': 'text/html' });
-            res.end(data);
-        });
-    } else if (req.url === '/style.css') {
-        // Serve the CSS file
-        fs.readFile(path.join(__dirname, 'public', 'style.css'), (err, data) => {
-            if (err) {
-                res.writeHead(500);
-                return res.end('Error loading style.css');
-            }
-            res.writeHead(200, { 'Content-Type': 'text/css' });
-            res.end(data);
-        });
-    } else if (req.url === '/logs') {
-        // Serve the logs as JSON
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ logs }));
+    if (req.url === '/') {
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end('online.');
     } else if (req.url === '/start') {
         // Start the bot
         exec('npm run bot', (error, stdout, stderr) => {
