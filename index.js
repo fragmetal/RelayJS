@@ -31,7 +31,7 @@ const server = http.createServer((req, res) => {
         // Serve the logs as JSON
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ logs }));
-    } else if (req.url === '/start-bot') {
+    } else if (req.url === '/start') {
         // Start the bot
         exec('npm run bot', (error, stdout, stderr) => {
             if (error) {
@@ -43,23 +43,27 @@ const server = http.createServer((req, res) => {
             res.end('Bot started successfully: ' + stdout);
         });
     } else if (req.url === '/stop-bot') {
-        // Stop the bot gracefully
-        client.destroy() // Gracefully shut down the bot
-            .then(() => {
-                res.writeHead(200);
-                res.end('Bot stopped successfully.');
-            })
-            .catch(error => {
-                res.writeHead(500);
-                res.end('Error stopping bot: ' + error.message);
+        // Stop the bot by calling the bot management server
+        http.get('http://localhost:3000/stop', (response) => {
+            let data = '';
+            response.on('data', chunk => {
+                data += chunk;
             });
+            response.on('end', () => {
+                res.writeHead(200);
+                res.end(data);
+            });
+        }).on('error', (error) => {
+            res.writeHead(500);
+            res.end('Error stopping bot: ' + error.message);
+        });
     } else {
         res.writeHead(404);
         res.end('Not found');
     }
 });
 
-// Start the server
+// Start the server on port 8080
 server.listen(8080, '0.0.0.0', () => {
     console.log('Server running on http://0.0.0.0:8080');
 });

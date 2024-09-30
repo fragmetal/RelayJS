@@ -1,4 +1,6 @@
 const { Client, Collection, GatewayIntentBits } = require("discord.js");
+const http = require('http');
+const { exec } = require('child_process');
 
 const client = new Client({
     allowedMentions: { parse: ['users', 'roles'] },
@@ -39,6 +41,39 @@ try {
 client.logger.loader(`${client.color.chalkcolor.red('[FINISH]')} ${loadedHandlerCount} handlers loaded`);
 
 client.login(client.config.token);
+
+// HTTP Server to manage bot actions
+const server = http.createServer((req, res) => {
+    if (req.url === '/stop') {
+        client.destroy() // Gracefully shut down the bot
+            .then(() => {
+                res.writeHead(200);
+                res.end('Bot stopped successfully.');
+            })
+            .catch(error => {
+                res.writeHead(500);
+                res.end('Error stopping bot: ' + error.message);
+            });
+    } else if (req.url === '/client-info') {
+        // Print client information (e.g., guilds the bot is in)
+        const clientInfo = {
+            guilds: client.guilds.cache.map(guild => ({
+                id: guild.id,
+                name: guild.name,
+            })),
+        };
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(clientInfo));
+    } else {
+        res.writeHead(404);
+        res.end('Not found');
+    }
+});
+
+// Start the server on port 3000
+server.listen(3000, '0.0.0.0', () => {
+    console.log('Bot management server running on http://0.0.0.0:3000');
+});
 
 // Export the client for use in other files
 module.exports = client;
