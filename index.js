@@ -6,7 +6,7 @@ const { exec } = require('child_process');
 
 // HTTP Server
 const server = http.createServer((req, res) => {
-    if (req.url === '/') {
+    if (req.url === '/index') {
         // Serve the main HTML file
         fs.readFile(path.join(__dirname, 'public', 'index.html'), (err, data) => {
             if (err) {
