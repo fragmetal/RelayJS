@@ -5,9 +5,22 @@ const { exec } = require('child_process');
 const server = http.createServer((req, res) => {
     if (req.url === '/') {
         http.get('http://localhost:3000/', (response) => {
+            let data = '';
+
+            // Collect data from the response
+            response.on('data', chunk => {
+                data += chunk;
+            });
+
+            // When the response ends, check the status code
             response.on('end', () => {
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(data);
+                if (response.statusCode === 200) {
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(data);
+                } else {
+                    res.writeHead(500);
+                    res.end('Error: Server at localhost:3000 is not online. Status code: ' + response.statusCode);
+                }
             });
         }).on('error', (error) => {
             res.writeHead(500);
