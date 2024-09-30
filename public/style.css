@@ -1,0 +1,47 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #505050;
+    margin: 0;
+    padding: 20px;
+    overflow: hidden;
+}
+
+.container {
+    width: 80%;
+    height: 90vh;
+    margin: auto;
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+h1 {
+    color: #39774c;
+    text-align: center;
+}
+
+h2 {
+    color: #444;
+    text-align: center;
+}
+
+#logs {
+    margin-top: 20px;
+    height: calc(100% - 60px);
+    overflow: hidden;
+}
+
+pre {
+    background: #eee;
+    padding: 20px;
+    border-radius: 5px;
+    height: 84%;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-width: 100%;
+    width: auto;
+    overflow-y: auto;
+}

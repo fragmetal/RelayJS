@@ -51,7 +51,7 @@ module.exports = async (client, oldState, newState) => {
     if (newState.channelId === settings.JoinCreate) {
         
         const member = newState.member;
-        const channelName = member && member.displayName ? `${member.displayName}'s` : "Default Channel";
+        const channelName = member && member.displayName ? `⏳| ${member.displayName}'s` : "⏳| Default Channel";
 
         const categoryChannel = newState.channel.parent;
 

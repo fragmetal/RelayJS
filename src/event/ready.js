@@ -36,11 +36,11 @@ module.exports = async (client) => {
             new ButtonBuilder()
                 .setCustomId('lock_channel')
                 .setLabel('🔒 Lock')
-                .setStyle(ButtonStyle.Danger),
+                .setStyle(ButtonStyle.Secondary),
             new ButtonBuilder()
                 .setCustomId('unlock_channel')
                 .setLabel('🔓 Unlock')
-                .setStyle(ButtonStyle.Success),
+                .setStyle(ButtonStyle.Secondary),
             new ButtonBuilder()
                 .setCustomId('hide_channel')
                 .setLabel('👁️‍🗨️ Hide')
@@ -48,11 +48,11 @@ module.exports = async (client) => {
             new ButtonBuilder()
                 .setCustomId('show_channel')
                 .setLabel('👁️ Show')
-                .setStyle(ButtonStyle.Primary),
+                .setStyle(ButtonStyle.Secondary),
             new ButtonBuilder()
                 .setCustomId('claim_channel')
                 .setLabel('🏷️ Claim')
-                .setStyle(ButtonStyle.Primary)
+                .setStyle(ButtonStyle.Secondary)
         );
 
     const row2 = new ActionRowBuilder()
@@ -60,7 +60,7 @@ module.exports = async (client) => {
             new ButtonBuilder()
                 .setCustomId('limit_channel')
                 .setLabel('♾️ Limit')
-                .setStyle(ButtonStyle.Primary)
+                .setStyle(ButtonStyle.Secondary)
         );
 
     // Delete the previous message if exists

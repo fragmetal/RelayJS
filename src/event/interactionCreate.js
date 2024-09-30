@@ -103,6 +103,14 @@ module.exports = async (client, interaction) => {
                 setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
                 break;
             case 'limit_channel':
+                const channelId = tempChannel.TempChannel;
+                const channel = await interaction.guild.channels.fetch(channelId);
+                if(interaction.member.id !== tempChannel.TempOwner) {
+                    await interaction.deferReply({ ephemeral: true });
+                    await interaction.editReply({ content: 'You are not the owner of this channel and cannot set the limit.', ephemeral: true });
+                    setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
+                    return;
+                }
                 const modal = new ModalBuilder()
                     .setCustomId('set_channel_limit_modal')
                     .setTitle('Set Channel Limit');
@@ -118,14 +126,11 @@ module.exports = async (client, interaction) => {
                 modal.addComponents(row);
                 await interaction.showModal(modal);
 
-                const channelId = tempChannel.TempChannel;
-                const channel = await interaction.guild.channels.fetch(channelId);
                 // Listen for the modal submit interaction
                 const filter = (i) => i.customId === 'set_channel_limit_modal' && i.user.id === interaction.user.id;
                 const submittedInteraction = await interaction.awaitModalSubmit({ filter, time: 60000 }).catch(console.error);
 
                 if (submittedInteraction) {
-
                     const limitValue = submittedInteraction.fields.getTextInputValue('channel_limit_input');
 
                     if (tempChannel.TempChannel === channel.id) {
