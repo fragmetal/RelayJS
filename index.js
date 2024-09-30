@@ -13,6 +13,7 @@ const server = http.createServer((req, res) => {
                 res.end('Error: Server at localhost:3000 is not online. Status code: ' + response.statusCode);
             }
         }).on('error', (error) => {
+            console.error('Error fetching status:', error.message); // Log the error message
             res.writeHead(500);
             res.end('Error fetching status: ' + error.message);
         });
@@ -41,6 +42,7 @@ const server = http.createServer((req, res) => {
                 res.end(data);
             });
         }).on('error', (error) => {
+            console.error('Error stopping bot:', error.message); // Log the error message
             res.writeHead(500);
             res.end('Error stopping bot: ' + error.message);
         });
