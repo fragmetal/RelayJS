@@ -17,7 +17,7 @@
     </div>
     <script>
         const logOutput = document.getElementById('logOutput');
-    
+
         // Function to fetch logs from the server
         function fetchLogs() {
             fetch('/logs')
@@ -29,8 +29,7 @@
                 })
                 .catch(err => console.error('Error fetching logs:', err));
         }
-    
-        // Fetch logs every 1 seconds
+        // Fetch logs every 1 second
         setInterval(fetchLogs, 1000);
     </script>
 </body>
