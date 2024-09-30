@@ -41,7 +41,7 @@ const server = http.createServer((req, res) => {
             res.writeHead(200);
             res.end('Bot started successfully: ' + stdout);
         });
-    } else if (req.url === '/stop-bot') {
+    } else if (req.url === '/stop') {
         // Stop the bot by calling the bot management server
         http.get('http://localhost:3000/stop', (response) => {
             let data = '';
