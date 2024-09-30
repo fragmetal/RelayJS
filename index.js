@@ -2,7 +2,6 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { logs } = require('./src/utils/logger');
-const client = require('./bot'); // Import the client instance
 const { exec } = require('child_process');
 
 // HTTP Server

@@ -74,6 +74,3 @@ const server = http.createServer((req, res) => {
 server.listen(3000, '0.0.0.0', () => {
     console.log('Bot management server running on http://0.0.0.0:3000');
 });
-
-// Export the client for use in other files
-module.exports = client;
