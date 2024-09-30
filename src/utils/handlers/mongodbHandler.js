@@ -1,19 +1,17 @@
 const { MongoClient } = require('mongodb');
-const config = require('../../../config'); // Go up three levels from mongodbHandler.js
 const logger = require('../logger');
+const config = require('../../../config');
 
 class MongoDBHandler {
     constructor() {
-        // Remove the deprecated options
         this.client = new MongoClient(config.mongoURI);
-        this.db = null;
+        this.db = this.client.db(config.dbName);
     }
 
     async connect() {
         try {
             await this.client.connect();
             logger.database('Connected successfully to MongoDB');
-            this.db = this.client.db(config.dbName);
         } catch (error) {
             logger.error('Failed to connect to MongoDB:', error);
         }
@@ -33,7 +31,12 @@ class MongoDBHandler {
             logger.database('Database not initialized. Call connect first!');
             return null;
         }
-        return this.db.collection(collectionName);
+        const collection = this.db.collection(collectionName);
+        const count = await collection.countDocuments();
+        if (count === 0) {
+            logger.error(`Collection ${collectionName} is empty or does not exist.`);
+        }
+        return collection;
     }
 }
 

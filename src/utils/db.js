@@ -136,30 +136,6 @@ class MongoUtilities {
             return null;
         }
     }
-
-    async getCollection(collectionName) {
-        if (!this.db) {
-            logger.database('Database not initialized. Call connect first!');
-            return null;
-        }
-        const collection = this.db.collection(collectionName);
-        const count = await collection.countDocuments();
-        if (count === 0) {
-            logger.error(`Collection ${collectionName} is empty or does not exist.`);
-        }
-        return collection;
-    }
-
-    async connect() {
-        try {
-            await this.mongodbHandler.connect(); // Ensure this is called before any DB operations
-            logger.info('Database connected successfully.');
-        } catch (error) {
-            logger.error('Database connection failed:', error.message);
-            // Log the entire error object for more details
-            logger.error('Error details:', JSON.stringify(error));
-        }
-    }
 }
 
 module.exports = MongoUtilities;
