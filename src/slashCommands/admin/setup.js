@@ -164,6 +164,63 @@ module.exports = {
                     temp_channels: []
                 };
 
+                const explanation = '**♾️ Limit Channel** - Menetapkan batas jumlah pengguna di voice ini.\n\n' +
+                                    '**🔒 Lock Channel** - Coming Soon!\n\n' +
+                                    '**🔓 Unlock Channel** - Coming Soon!\n\n' +
+                                    '**👁️‍🗨️ Hide Channel** - Coming Soon!\n\n' +
+                                    '**👁️ Show Channel** - Coming Soon!\n\n' +
+                                    '**🏷️ Claim Channel** - Coming Soon!\n\n';
+
+                const row1 = new ActionRowBuilder()
+                    .addComponents(
+                        new ButtonBuilder()
+                            .setCustomId('lock_channel')
+                            .setLabel('🔒 Lock')
+                            .setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder()
+                            .setCustomId('unlock_channel')
+                            .setLabel('🔓 Unlock')
+                            .setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder()
+                            .setCustomId('hide_channel')
+                            .setLabel('👁️‍🗨️ Hide')
+                            .setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder()
+                            .setCustomId('show_channel')
+                            .setLabel('👁️ Show')
+                            .setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder()
+                            .setCustomId('claim_channel')
+                            .setLabel('🏷️ Claim')
+                            .setStyle(ButtonStyle.Secondary)
+                    );
+
+                const row2 = new ActionRowBuilder()
+                    .addComponents(
+                        new ButtonBuilder()
+                            .setCustomId('limit_channel')
+                            .setLabel('♾️ Limit')
+                            .setStyle(ButtonStyle.Secondary)
+                    );
+
+                // Delete the previous message if exists
+                const messages = await channel.messages.fetch({ limit: 1 });
+                if (messages.size > 0) {
+                    await messages.first().delete();
+                }
+
+                await channel.send({
+                    content: '**__Channel Control Panel__**',
+                    embeds: [
+                        new EmbedBuilder()
+                            .setColor(0x0099FF)
+                            .setTitle('**__Channel Management__**')
+                            .setDescription(explanation)
+                            .setTimestamp()
+                    ],
+                    components: [row1, row2] // Send both action rows
+                });
+
                 const saveResult = await mongoUtils.saveToDB('voice_channels', dbDocument);
                 if (saveResult && saveResult.insertedId) {
                     await interaction.editReply({ content: `Channels created successfully. Save result ID: ${saveResult.insertedId}.` });

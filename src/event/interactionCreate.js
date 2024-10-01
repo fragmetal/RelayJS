@@ -1,4 +1,4 @@
-const { Collection, ActionRowBuilder, TextInputBuilder, ModalBuilder, TextInputStyle } = require('discord.js');
+const { Collection, ActionRowBuilder, TextInputBuilder, ModalBuilder, TextInputStyle, InteractionResponse } = require('discord.js');
 const MongoUtilities = require('../utils/db');
 // Initialize cooldowns collection
 const cooldowns = new Collection();
@@ -76,82 +76,83 @@ module.exports = async (client, interaction) => {
             return;
         }
 
-        switch (interaction.customId) {
-            case 'lock_channel':
-                await interaction.deferReply({ ephemeral: true });
-                await interaction.editReply({ content: 'Channel locked!' });
-                setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
-                break;
-            case 'unlock_channel':
-                await interaction.deferReply({ ephemeral: true });
-                await interaction.editReply({ content: 'Channel unlocked!' });
-                setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
-                break;
-            case 'hide_channel':
-                await interaction.deferReply({ ephemeral: true });
-                await interaction.editReply({ content: 'Channel hidden!' });
-                setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
-                break;
-            case 'show_channel':
-                await interaction.deferReply({ ephemeral: true });
-                await interaction.editReply({ content: 'Channel shown!' });
-                setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
-                break;
-            case 'claim_channel':
-                await interaction.deferReply({ ephemeral: true });
-                await interaction.editReply({ content: 'Channel claimed!' });
-                setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
-                break;
-            case 'limit_channel':
-                const channelId = tempChannel.TempChannel;
-                const channel = await interaction.guild.channels.fetch(channelId);
-                
-                // Defer the interaction first
-                await interaction.deferReply({ ephemeral: true });
+        try {
+            switch (interaction.customId) {
+                case 'lock_channel':
+                    await interaction.deferReply({ ephemeral: true });
+                    await interaction.editReply({ content: 'Coming Soon!' });
+                    break;
+                case 'unlock_channel':
+                    await interaction.deferReply({ ephemeral: true });
+                    await interaction.editReply({ content: 'Coming Soon!' });
+                    break;
+                case 'hide_channel':
+                    await interaction.deferReply({ ephemeral: true });
+                    await interaction.editReply({ content: 'Coming Soon!!' });
+                    break;
+                case 'show_channel':
+                    await interaction.deferReply({ ephemeral: true });
+                    await interaction.editReply({ content: 'Coming Soon!!' });
+                    break;
+                case 'claim_channel':
+                    await interaction.deferReply({ ephemeral: true });
+                    await interaction.editReply({ content: 'Coming Soon!!' });
+                    break;
+                case 'limit_channel':
+                    const channelId = tempChannel.TempChannel;
+                    const channel = await interaction.guild.channels.fetch(channelId);
+                    
+                    // Defer the interaction first
+                    await interaction.deferReply({ ephemeral: true });
 
-                if (interaction.member.id !== tempChannel.TempOwner) {
-                    await interaction.editReply({ content: 'You are not the owner of this channel and cannot set the limit.' });
-                    setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
-                    return;
-                }
-
-                const modal = new ModalBuilder()
-                    .setCustomId('set_channel_limit_modal')
-                    .setTitle('Set Channel Limit');
-
-                const limitInput = new TextInputBuilder()
-                    .setCustomId('channel_limit_input')
-                    .setLabel('Enter the channel limit:')
-                    .setStyle(TextInputStyle.Short)
-                    .setPlaceholder('e.g., 5')
-                    .setRequired(true);
-
-                const row = new ActionRowBuilder().addComponents(limitInput);
-                modal.addComponents(row);
-                await interaction.showModal(modal);
-
-                // Listen for the modal submit interaction
-                const filter = (i) => i.customId === 'set_channel_limit_modal' && i.user.id === interaction.user.id;
-                const submittedInteraction = await interaction.awaitModalSubmit({ filter, time: 60000 }).catch(console.error);
-
-                if (submittedInteraction) {
-                    const limitValue = submittedInteraction.fields.getTextInputValue('channel_limit_input');
-
-                    if (tempChannel.TempChannel === channel.id) {
-                        await channel.setUserLimit(limitValue);
-                        await submittedInteraction.deferReply({ ephemeral: true });
-                        await submittedInteraction.editReply({ content: `Channel limit set to ${limitValue}!` });
-                        setTimeout(() => submittedInteraction.deleteReply().catch(console.error), 6000);
-                    } else {
-                        await submittedInteraction.reply({ content: 'Failed to set channel limit. This channel is not a voice channel.', ephemeral: true });
-                        setTimeout(() => submittedInteraction.deleteReply().catch(console.error), 6000);
+                    if (interaction.member.id !== tempChannel.TempOwner) {
+                        await interaction.editReply({ content: 'You are not the owner of this channel and cannot set the limit.' });
+                        return;
                     }
-                }
-                break;
-            default:
+
+                    const modal = new ModalBuilder()
+                        .setCustomId('set_channel_limit_modal')
+                        .setTitle('Set Channel Limit');
+
+                    const limitInput = new TextInputBuilder()
+                        .setCustomId('channel_limit_input')
+                        .setLabel('Enter the channel limit:')
+                        .setStyle(TextInputStyle.Short)
+                        .setPlaceholder('e.g., 5')
+                        .setRequired(true);
+
+                    const row = new ActionRowBuilder().addComponents(limitInput);
+                    modal.addComponents(row);
+                    await interaction.showModal(modal);
+
+                    // Listen for the modal submit interaction
+                    const filter = (i) => i.customId === 'set_channel_limit_modal' && i.user.id === interaction.user.id;
+                    const submittedInteraction = await interaction.awaitModalSubmit({ filter, time: 60000 }).catch(console.error);
+
+                    if (submittedInteraction) {
+                        const limitValue = submittedInteraction.fields.getTextInputValue('channel_limit_input');
+
+                        if (tempChannel.TempChannel === channel.id) {
+                            await channel.setUserLimit(limitValue);
+                            await submittedInteraction.deferReply({ ephemeral: true });
+                            await submittedInteraction.editReply({ content: `Channel limit set to ${limitValue}!` });
+                        } else {
+                            await submittedInteraction.reply({ content: 'Failed to set channel limit. This channel is not a voice channel.', ephemeral: true });
+                        }
+                    }
+                    break;
+                default:
+                    await interaction.deferReply({ ephemeral: true });
+                    await interaction.editReply({ content: 'Unknown action!' });
+            }
+        } catch (error) {
+            console.error(error);
+            if (interaction.deferred) {
+                await interaction.editReply({ content: 'An error occurred while processing your request.' });
+            } else {
                 await interaction.deferReply({ ephemeral: true });
-                await interaction.editReply({ content: 'Unknown action!' });
-                setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
+                await interaction.editReply({ content: 'An error occurred while processing your request.' });
+            }
         }
     }
 };

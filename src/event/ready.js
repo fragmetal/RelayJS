@@ -24,12 +24,12 @@ module.exports = async (client) => {
     }
 
     // Explanation of button functionalities with enhanced visibility
-    const explanation = '**🔒 Lock Channel** - Prevents others from speaking in this channel.\n\n' +
-                        '**🔓 Unlock Channel** - Allows others to speak in this channel.\n\n' +
-                        '**👁️‍🗨️ Hide Channel** - Makes the channel invisible to others.\n\n' +
-                        '**👁️ Show Channel** - Makes the channel visible to others.\n\n' +
-                        '**🏷️ Claim Channel** - Take ownership of this channel.\n\n' +
-                        '**♾️ Limit Channel** - Set a limit on the number of users in this voice channel.';
+    const explanation = '**♾️ Limit Channel** - Menetapkan batas jumlah pengguna di voice ini.\n\n' +
+                        '**🔒 Lock Channel** - Coming Soon!\n\n' +
+                        '**🔓 Unlock Channel** - Coming Soon!\n\n' +
+                        '**👁️‍🗨️ Hide Channel** - Coming Soon!\n\n' +
+                        '**👁️ Show Channel** - Coming Soon!\n\n' +
+                        '**🏷️ Claim Channel** - Coming Soon!\n\n';
 
     const row1 = new ActionRowBuilder()
         .addComponents(
