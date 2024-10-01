@@ -6,12 +6,18 @@ const { readdirSync } = require('fs');
 const path = require('path');
 const config = require("./config");
 
-const commands = []
-readdirSync("./src/slashCommands/").map(async dir => {
-	readdirSync(`./src/slashCommands/${dir}/`).map(async (cmd) => {
-	commands.push(require(path.join(__dirname, `./src/slashCommands/${dir}/${cmd}`)))
-    })
-})
+const commands = [];
+
+// Read directories in the slashCommands folder
+readdirSync("./src/slashCommands/").forEach(dir => {
+    // Exclude the 'testing' folder from being loaded
+    if (dir !== 'testing') {
+        readdirSync(`./src/slashCommands/${dir}/`).forEach(cmd => {
+            commands.push(require(path.join(__dirname, `./src/slashCommands/${dir}/${cmd}`)));
+        });
+    }
+});
+
 const rest = new REST({ version: "9" }).setToken(config.token);
 
 (async () => {
