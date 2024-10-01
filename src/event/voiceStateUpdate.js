@@ -130,19 +130,22 @@ module.exports = async (client, oldState, newState) => {
         }
     }
     // Check if the channel has become empty
-    if (oldState.channel && !newState.channel) { // This indicates a user has left a channel
-        const channel = oldState.channel;
+    if (oldState.channel && !newState.channel && oldState.channel.members.size === 0) {
         const channelData = await mongoUtils.fetchVoiceChannelData(oldState.member); // Fetch channel data from the database
-        if (channel.members.size === 0 && channel.id !== settings.JoinCreate && channel.id !== newState.guild.afkChannelId && channelData.tempChannels.some(temp => temp.TempChannel === channel.id)) { // Ensure the channel is now empty, it's not the AFK channel, and it matches an ID from the database
-            try {
-                await channel.delete();
-                await mongoUtils.updateDB('voice_channels', { _id: channel.guild.id }, {
-                    $pull: {
-                        temp_channels: { TempChannel: channel.id }
-                    }
-                });
-            } catch (error) {
-                console.error(`Failed to delete empty channel: ${channel.name}`, error);
+        if (oldState.channel !== settings.JoinCreate && oldState.channel !== newState.guild.afkChannelId && channelData.tempChannels.some(temp => temp.TempChannel === oldState.channel.id)) {
+            // Check if any owner's channels are not empty
+            const ownerChannelsNotEmpty = channelData.ownerChannels.some(temp => temp.TempChannel !== oldState.channel.id && temp.members.size > 0);
+            if (!ownerChannelsNotEmpty) { // Only delete if no other channels are occupied
+                try {
+                    await channel.delete();
+                    await mongoUtils.updateDB('voice_channels', { _id: channel.guild.id }, {
+                        $pull: {
+                            temp_channels: { TempChannel: oldState.channel.id } // Use channel ID for the pull operation
+                        }
+                    });
+                } catch (error) {
+                    console.error(`Failed to delete empty channel: ${oldState.channel.name}`, error);
+                }
             }
         }
     }
