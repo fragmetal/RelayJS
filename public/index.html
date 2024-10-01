@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <title>Bot - RelayJS</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <title>Bot Panel</title>
 </head>
 <body>
     <div class="container">
@@ -15,23 +15,6 @@
             <pre id="logOutput"></pre>
         </div>
     </div>
-    <script>
-        const logOutput = document.getElementById('logOutput');
-
-        // Function to fetch logs from the server
-        function fetchLogs() {
-            fetch('/logs')
-                .then(response => response.json())
-                .then(data => {
-                    logOutput.textContent = data.logs.join('\n');
-                    // Scroll to the bottom of the logs
-                    logOutput.scrollTop = logOutput.scrollHeight;
-                })
-                .catch(err => console.error('Error fetching logs:', err));
-        }
-
-        // Fetch logs every 1 second
-        setInterval(fetchLogs, 1000);
-    </script>
+    <script src="/script.js"></script>
 </body>
 </html>

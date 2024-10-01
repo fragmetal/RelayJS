@@ -1,8 +1,7 @@
 const { Client, Collection, GatewayIntentBits } = require("discord.js");
 const http = require('http');
-const fs = require('fs'); // Import fs to read files
-const { exec } = require('child_process');
-const { logs } = require('./src/utils/logger'); // Import logs from logger.js
+const fs = require('fs');
+const path = require('path');
 
 const client = new Client({
     allowedMentions: { parse: ['users', 'roles'] },
@@ -21,7 +20,8 @@ const client = new Client({
 client.slash = new Collection();
 
 // SET UTILS
-client.logger = require('./src/utils/logger.js');
+const { logs } = require('./src/utils/logger.js');
+client.logger = require('./src/utils/logger.js')
 client.color = require('./src/utils/color.js');
 
 // SET CONFIG
@@ -46,67 +46,55 @@ client.login(client.config.token);
 
 // HTTP Server to manage bot actions
 const server = http.createServer((req, res) => {
-    if (req.url === '/public/index.html') {
-        res.writeHead(200, { 'Content-Type': 'text/html' });
-        fs.readFile('./public/index.html', (err, data) => {
-            if (err) {
-                res.writeHead(500);
-                res.end('Error reading index.html: ' + err.message);
-                return;
+    const filePath = path.join(__dirname, 'public', req.url === '/' ? 'index.html' : req.url);
+
+    let contentType = 'text/html'; // Default to HTML
+    if (filePath.endsWith('.css')) {
+        contentType = 'text/css';
+    } else if (filePath.endsWith('.js')) {
+        contentType = 'application/javascript';
+    }
+
+    fs.readFile(filePath, (err, data) => {
+        if (err) {
+            if (err.code === 'ENOENT') {
+                if (!res.headersSent) {
+                    res.writeHead(404);
+                    res.end('File not found');
+                }
+            } else {
+                if (!res.headersSent) {
+                    res.writeHead(500);
+                    res.end('Server error');
+                }
             }
-            res.end(data);
-        });
-    } else if (req.url === '/public/style.css') {
-        res.writeHead(200, { 'Content-Type': 'text/css' });
-        fs.readFile('./public/style.css', (err, data) => {
-            if (err) {
-                res.writeHead(500);
-                res.end('Error reading style.css: ' + err.message);
-                return;
+        } else {
+            if (!res.headersSent) {
+                res.writeHead(200, { 'Content-Type': contentType });
+                res.end(data);
             }
-            res.end(data);
-        });
-    } else if (req.url === '/public/favicon.ico') {
-        res.writeHead(200, { 'Content-Type': 'image/x-icon' });
-        fs.readFile('./public/favicon.ico', (err, data) => {
-            if (err) {
-                res.writeHead(500);
-                res.end('Error reading favicon.ico: ' + err.message);
-                return;
-            }
-            res.end(data);
-        });
+        }
+    });
+
+    if (req.url === '/stop') {
+    server.close(() => {
+        client.logger.info('HTTP server stopped.');
+        process.exit(0); // Exit the process
+    });
     } else if (req.url === '/logs') {
-        // Serve the logs as JSON
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ logs }));
-    } else if (req.url === '/stop') {
-        client.destroy() // Gracefully shut down the bot
-            .then(() => {
-                res.writeHead(200);
-                res.end('Bot stopped successfully.');
-            })
-            .catch(error => {
-                res.writeHead(500);
-                res.end('Error stopping bot: ' + error.message);
-            });
-    } else if (req.url === '/client-info') {
-        // Print client information (e.g., guilds the bot is in)
-        const clientInfo = {
-            guilds: client.guilds.cache.map(guild => ({
-                id: guild.id,
-                name: guild.name,
-            })),
-        };
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(clientInfo));
+        if (!res.headersSent) {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ logs: logs || [] }));
+        }
+        return; 
     } else {
         res.writeHead(404);
-        res.end('Not found');
+        res.end('File not found');
+        return; 
     }
 });
 
 // Start the server on port 3000
 server.listen(3000, '0.0.0.0', () => {
-    console.log('Bot management server running on http://0.0.0.0:3000');
+    client.logger.info('Bot management server running on http://0.0.0.0:3000');
 });

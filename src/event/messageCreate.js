@@ -12,11 +12,5 @@ module.exports = async (client, message) => {
     // If member data is still not available, return
     if (!message.member) return;
 
-    // PERMISSION CHECKER
-    // Example: Check if the member has the required permission
-    if (!message.member.permissions || !message.member.permissions.has(PermissionFlagsBits.ManageMessages)) {
-        return message.reply(`You're missing permissions: **Manage Messages**`);
-    }
-
     // Additional message handling logic can be added here
 };
