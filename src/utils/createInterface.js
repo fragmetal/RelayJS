@@ -45,14 +45,11 @@ const createInterface = async (channel) => {
         await botMessage.delete();
     }
 
-    // Send the new message with the embed and buttons, including the image in the embed
+    // Combine the embed with the attachment and send it in a single message
     await channel.send({
         embeds: [embed],
-        files: [{
-            attachment: './NeverGonnaGiveYouUp.png', // Path to the image file
-            name: 'NeverGonnaGiveYouUp.png' // Name of the file
-        }],
-        components: [row1, row2, row3]
+        components: [row1, row2, row3],
+        files: [{ attachment: './NeverGonnaGiveYouUp.png', name: 'NeverGonnaGiveYouUp.png' }]
     });
 };
 
