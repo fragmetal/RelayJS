@@ -81,7 +81,7 @@ module.exports = async (client, interaction) => {
                         await interaction.reply({ content: 'Channel not found. Please try again.', ephemeral: true });
                         return;
                     }
-                    console.log(channel);
+
                     if (interaction.member.id !== tempChannel.Owner) {
                         await interaction.reply({ content: 'You are not the owner of this channel and cannot set the limit.', ephemeral: true });
                         return;
@@ -121,9 +121,9 @@ module.exports = async (client, interaction) => {
                         await channel.setUserLimit(limitValue);
                         await submittedInteraction.deferUpdate(); // Use deferUpdate instead of deferReply
                         await submittedInteraction.reply({ content: `Channel limit successfully set to ${limitValue}!` });
+                    } else {
+                        await interaction.reply({ content: 'Interaction has expired or was not submitted in time. Please try again.', ephemeral: true });
                     }
-                } else {
-                    await interaction.reply({ content: 'Failed to fetch voice channel data.', ephemeral: true });
                 }
                 break;
             case 'privacy':
