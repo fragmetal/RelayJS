@@ -1,8 +1,12 @@
-const { PermissionFlagsBits } = require("discord.js");
 
 module.exports = async (client, message) => {
     // Check if the bot is in developer mode
     if (client.devMode === true) {
+        await message.deferReply({ ephemeral: true });
+        await message.editReply({ content: 'Developer mode is currently active. You cannot use any commands except for /dev.', ephemeral: true });
+        setTimeout(() => {
+            message.deleteReply().catch(console.error);
+        }, 6000);
         return; // Exit if in developer mode
     }
 

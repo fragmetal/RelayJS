@@ -129,12 +129,12 @@ class MongoUtilities {
                 tempChannels: result.temp_channels || [],
                 Owner: result.Owner || null,
                 vc_dashboard: result.vc_dashboard || null,
-                JoinCreate: result.JoinCreate || null,
-                ownerChannels: result.temp_channels.filter(temp => temp.Owner === result.Owner)
+                JoinCreate: result.JoinCreate || null
             };
+
         } catch (error) {
             logger.error('Failed to fetch voice channel data:', JSON.stringify(error));
-            return null;
+            return; // Add a return statement to exit the function after logging the error
         }
     }
 }

@@ -6,6 +6,11 @@ const cooldowns = new Collection();
 module.exports = async (client, interaction) => {
     // Check if the bot is in developer mode
     if (client.devMode === true && interaction.commandName !== 'dev') {
+        await interaction.deferReply({ ephemeral: true });
+        await interaction.editReply({ content: 'Developer mode is currently active. You cannot use any commands except for /dev.', ephemeral: true });
+        setTimeout(() => {
+            interaction.deleteReply().catch(console.error);
+        }, 6000);
         return; // Exit if in developer mode and not the /dev command
     }
 
