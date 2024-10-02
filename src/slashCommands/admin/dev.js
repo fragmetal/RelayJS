@@ -22,10 +22,16 @@ module.exports = {
 
         if (confirm === 'yes') {
             client.devMode = true; // Set the bot to developer mode
-            await interaction.reply({ content: 'Developer mode activated. The bot will ignore all commands and events except for /dev.' });
+            await interaction.reply({ content: 'Developer mode activated.', ephemeral: true });
+            setTimeout(() => {
+                interaction.delete().catch(console.error);
+            }, 6000);
         } else {
             client.devMode = false; // Set the bot to developer mode
-            await interaction.reply({ content: 'Developer mode activation cancelled.' });
+            await interaction.reply({ content: 'Developer mode deactivated.', ephemeral: true });
+            setTimeout(() => {
+                interaction.delete().catch(console.error);
+            }, 6000);
         }
     }
 };

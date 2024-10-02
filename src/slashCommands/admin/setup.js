@@ -12,13 +12,35 @@ module.exports = {
             name: 'create',
             description: 'Create new voice and text channels within a specified category',
             type: 1, // Type for SUB_COMMAND
-            options: [] // Removed options for create command
+            options: [
+                {
+                    name: 'confirm',
+                    description: 'Are you sure you want to create channels?',
+                    type: 3, // STRING type
+                    required: true,
+                    choices: [
+                        { name: 'Yes', value: 'yes' },
+                        { name: 'No', value: 'no' }
+                    ]
+                }
+            ] // Added confirmation option
         },
         {
             name: 'delete',
             description: 'Delete channels or configurations',
             type: 1, // Type for SUB_COMMAND
-            options: []
+            options: [
+                {
+                    name: 'confirm',
+                    description: 'Are you sure you want to delete channels?',
+                    type: 3, // STRING type
+                    required: true,
+                    choices: [
+                        { name: 'Yes', value: 'yes' },
+                        { name: 'No', value: 'no' }
+                    ]
+                }
+            ] // Added confirmation option for delete
         }
     ],
 
@@ -73,6 +95,11 @@ module.exports = {
         const subCommand = interaction.options.getSubcommand();
         
         if (subCommand === 'create') {
+            const confirmCreate = interaction.options.getString('confirm'); // Get confirmation choice
+            if (confirmCreate === 'no') {
+                return await interaction.editReply({ content: 'Channel creation canceled.' });
+            }
+
             try {
                 // Create a new category channel named 'Temp Channels'
                 const newCategoryChannel = await interaction.guild.channels.create({
@@ -232,6 +259,11 @@ module.exports = {
                 await interaction.editReply({ content: 'Failed to create channels. Please try again.' });
             }
         } else if (subCommand === 'delete') {
+            const confirmDelete = interaction.options.getString('confirm'); // Get confirmation choice
+            if (confirmDelete === 'no') {
+                return await interaction.editReply({ content: 'Channel deletion canceled.' });
+            }
+
             const dbCollection = 'voice_channels';
             const query = { _id: interaction.guild.id };
             const existingDocument = await mongoUtils.loadFromDB(dbCollection, query);
