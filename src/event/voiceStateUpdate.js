@@ -129,14 +129,19 @@ module.exports = async (client, oldState, newState) => {
             console.error('Failed to create or move to a new channel:', error);
         }
     }
+    const channelData = await mongoUtils.fetchVoiceChannelData(oldState.member); // Fetch channel data from the database
     // Check if the channel has become empty
     if (oldState.channel && !newState.channel && oldState.channel.members.size === 0) {
-        const channelData = await mongoUtils.fetchVoiceChannelData(oldState.member); // Fetch channel data from the database
         const channel = oldState.channel; // Define the channel variable
-        if (channel !== settings.JoinCreate && channel !== newState.guild.afkChannelId && channelData.tempChannels.some(temp => temp.TempChannel === channel.id)) {
+        if (channel.id !== settings.JoinCreate && channel.id !== newState.guild.afkChannelId && channelData.tempChannels.some(temp => temp.TempChannel === channel.id)) {
             // Check if any owner's channels are not empty
-            const ownerChannelsNotEmpty = channelData.ownerChannels.some(temp => temp.TempChannel !== channel.id && temp.members.size > 0);
-            if (!ownerChannelsNotEmpty) { // Only delete if no other channels are occupied
+            const ownerChannelsNotEmpty = await Promise.all(channelData.ownerChannels.map(async temp => {
+                const ownerChannel = await oldState.guild.channels.fetch(temp.TempChannel); // Fetch the channel by ID
+                return ownerChannel && ownerChannel.members.size > 0; // Check if the channel exists and has members
+            }));
+
+            // Check if any of the channels are not empty
+            if (!ownerChannelsNotEmpty.some(isNotEmpty => isNotEmpty)) { // Only delete if no other channels are occupied
                 try {
                     await channel.delete();
                     await mongoUtils.updateDB('voice_channels', { _id: channel.guild.id }, {
