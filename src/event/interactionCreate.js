@@ -75,6 +75,7 @@ module.exports = async (client, interaction) => {
         switch (interaction.customId) {
             case 'name':
                 if (!interaction.replied) {
+                    await interaction.deferReply({ ephemeral: true });
                     await interaction.editReply({ content: 'You clicked the Name button!' });
                     setTimeout(() => {
                         interaction.deleteReply().catch(console.error);
@@ -84,6 +85,7 @@ module.exports = async (client, interaction) => {
             case 'limit':
                 if (!tempChannel) {
                     if (!interaction.replied) {
+                        await interaction.deferReply({ ephemeral: true });
                         await interaction.editReply({ content: 'Channel not found. Please try again.', ephemeral: true });
                         setTimeout(() => {
                             interaction.deleteReply().catch(console.error);
@@ -94,6 +96,7 @@ module.exports = async (client, interaction) => {
 
                 if (interaction.member.id !== tempChannel.Owner) {
                     if (!interaction.replied) {
+                        await interaction.deferReply({ ephemeral: true });
                         await interaction.editReply({ content: 'You are not the owner of this channel and cannot set the limit.', ephemeral: true });
                         setTimeout(() => {
                             interaction.deleteReply().catch(console.error);
