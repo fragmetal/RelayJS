@@ -138,23 +138,23 @@ module.exports = async (client, oldState, newState) => {
     // Check if the channel has become empty
     if (oldState.channel && !newState.channel) {
         const channel = oldState.channel; // Define the channel variable
-        console.log(`Check if the channel has become empty`);
+        //console.log(`Check if the channel has become empty`);
         if (channel.members.size === 0) { // Check if the channel is empty
             if (channel.id !== settings.JoinCreate && channel.id !== newState.guild.afkChannelId && channelData.tempChannels.some(temp => temp.TempChannel === channel.id)) {
                 // Check if any owner's channels are not empty
                 const ownerChannelsNotEmpty = await Promise.all(channelData.tempChannels.map(async temp => {
                     const ownerChannel = await oldState.guild.channels.fetch(temp.TempChannel).catch(err => {
-                        console.error(`Failed to fetch channel with ID ${temp.TempChannel}:`, err);
+                        //console.error(`Failed to fetch channel with ID ${temp.TempChannel}:`, err);
                         return null; // Return null if fetching fails
                     }); // Fetch the channel by ID
                     return ownerChannel && ownerChannel.members.size > 0; // Check if the channel exists and has members
                 }));
 
-                console.log(`Check if any of the channels are not empty`);
+                //console.log(`Check if any of the channels are not empty`);
                 // Check if any channel is not empty
                 if (!ownerChannelsNotEmpty.some(isNotEmpty => isNotEmpty)) { // Only delete if no other channels are occupied
                     try {
-                        console.log(`Deleting empty channel: ${channel.name}`);
+                        //console.log(`Deleting empty channel: ${channel.name}`);
                         await channel.delete();
                         await mongoUtils.updateDB('voice_channels', { _id: channel.guild.id }, {
                             $pull: {
