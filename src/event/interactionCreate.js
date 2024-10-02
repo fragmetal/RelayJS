@@ -117,9 +117,6 @@ module.exports = async (client, interaction) => {
                     const channelId = tempChannel.TempChannel;
                     const channel = await interaction.guild.channels.fetch(channelId);
                     
-                    // Defer the interaction first
-                    await interaction.deferReply({ ephemeral: true });
-
                     if (interaction.member.id !== tempChannel.Owner) {
                         await interaction.deferReply({ ephemeral: true });
                         await interaction.editReply({ content: 'You are not the owner of this channel and cannot set the limit.' });
@@ -161,6 +158,7 @@ module.exports = async (client, interaction) => {
                 default:
                     await interaction.deferReply({ ephemeral: true });
                     await interaction.editReply({ content: 'Unknown action!' });
+                    setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
             }
         } catch (error) {
             console.error(error);
