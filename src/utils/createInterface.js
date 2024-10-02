@@ -9,28 +9,28 @@ const createInterface = async (channel) => {
 
     const embed = new EmbedBuilder()
         .setColor(0x0099FF)
-        .setDescription('This interface can be used to manage temporary voice channels.')
+        .setDescription('**This interface to manage temporary voice channels.** \n\n' +
+                        '**__Use the buttons below to:__** \n\n' +
+                        '🔗 **Name**: Change the name of the voice channel.\n' +
+                        '♾️ **Limit**: Set a user limit for the voice channel.\n' +
+                        '🔒 **Privacy**: Toggle the privacy settings of the channel.\n' +
+                        '📩 **Invite**: Send an invite link to the channel.\n' +
+                        '🚫 **Kick**: Remove a user from the voice channel.\n' +
+                        '👑 **Claim**: Claim ownership of the voice channel.\n' +
+                        '🔄 **Transfer**: Transfer ownership to another user.\n' +
+                        '🗑️ **Delete**: Permanently delete the voice channel.');
 
     const row1 = new ActionRowBuilder()
         .addComponents(
             new ButtonBuilder().setCustomId('name').setLabel('🔗').setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId('limit').setLabel('♾️').setStyle(ButtonStyle.Secondary),
-            new ButtonBuilder().setCustomId('region').setLabel('🌍').setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId('privacy').setLabel('🔒').setStyle(ButtonStyle.Secondary),
-            new ButtonBuilder().setCustomId('waiting').setLabel('⏳').setStyle(ButtonStyle.Secondary)
-        );
-
-    const row2 = new ActionRowBuilder()
-        .addComponents(
-            new ButtonBuilder().setCustomId('trust').setLabel('✅').setStyle(ButtonStyle.Secondary),
-            new ButtonBuilder().setCustomId('untrust').setLabel('❌').setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId('invite').setLabel('📩').setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId('kick').setLabel('🚫').setStyle(ButtonStyle.Secondary)
         );
 
-    const row3 = new ActionRowBuilder()
+    const row2 = new ActionRowBuilder()
         .addComponents(
-            new ButtonBuilder().setCustomId('thread').setLabel('🧵').setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId('claim').setLabel('👑').setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId('transfer').setLabel('🔄').setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId('delete').setLabel('🗑️').setStyle(ButtonStyle.Secondary)
@@ -45,11 +45,10 @@ const createInterface = async (channel) => {
         await botMessage.delete();
     }
 
-    // Combine the embed with the attachment and send it in a single message
+    // Send the embed without the attachment
     await channel.send({
         embeds: [embed],
-        components: [row1, row2, row3],
-        files: [{ attachment: './NeverGonnaGiveYouUp.png', name: 'NeverGonnaGiveYouUp.png' }]
+        components: [row1, row2]
     });
 };
 
