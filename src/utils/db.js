@@ -129,7 +129,9 @@ class MongoUtilities {
                 tempChannels: result.temp_channels || [],
                 vc_dashboard: result.vc_dashboard || null,
                 JoinCreate: result.JoinCreate || null,
-                gamechat: result.gamechat || null
+                gamechat: result.gamechat || null,
+                Owner: result.Owner || null,
+                TempChannel: result.TempChannel || null
             };
 
         } catch (error) {
