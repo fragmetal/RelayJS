@@ -137,31 +137,41 @@ module.exports = async (client, interaction) => {
                             if (channel.type === 2) { // Ensure it's a voice channel (type 2)
                                 try {
                                     await channel.setUserLimit(limitValue);
-                                    await submittedInteraction.reply({ content: `Channel limit successfully set to ${limitValue}!`, ephemeral: true });
+                                    if (!submittedInteraction.replied) {
+                                        await submittedInteraction.reply({ content: `Channel limit successfully set to ${limitValue}!`, ephemeral: true });
+                                    }
                                     setTimeout(() => {
                                         submittedInteraction.deleteReply().catch(console.error);
                                     }, 6000);
                                 } catch (error) {
                                     console.error('Error setting user limit:', error);
-                                    await submittedInteraction.reply({ content: 'Failed to set channel limit due to an error.', ephemeral: true });
+                                    if (!submittedInteraction.replied) {
+                                        await submittedInteraction.reply({ content: 'Failed to set channel limit due to an error.', ephemeral: true });
+                                    }
                                     setTimeout(() => {
                                         submittedInteraction.deleteReply().catch(console.error);
                                     }, 6000);
                                 }
                             } else {
-                                await submittedInteraction.reply({ content: 'Failed to set channel limit. This channel is not a voice channel.', ephemeral: true });
+                                if (!submittedInteraction.replied) {
+                                    await submittedInteraction.reply({ content: 'Failed to set channel limit. This channel is not a voice channel.', ephemeral: true });
+                                }
                                 setTimeout(() => {
                                     submittedInteraction.deleteReply().catch(console.error);
                                 }, 6000);
                             }
                         } else {
-                            await submittedInteraction.reply({ content: 'Failed to set channel limit. Channel not found.', ephemeral: true });
+                            if (!submittedInteraction.replied) {
+                                await submittedInteraction.reply({ content: 'Failed to set channel limit. Channel not found.', ephemeral: true });
+                            }
                             setTimeout(() => {
                                 submittedInteraction.deleteReply().catch(console.error);
                             }, 6000);
                         }
                     } else {
-                        await submittedInteraction.reply({ content: 'Please enter a valid number for the channel limit (0-99).', ephemeral: true });
+                        if (!submittedInteraction.replied) {
+                            await submittedInteraction.reply({ content: 'Please enter a valid number for the channel limit (0-99).', ephemeral: true });
+                        }
                         setTimeout(() => {
                             submittedInteraction.deleteReply().catch(console.error);
                         }, 6000);
