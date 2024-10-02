@@ -1,6 +1,6 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
 
-const createInterface = async (channel) => {
+const createInterface = async (interaction) => {
     const embed = new EmbedBuilder()
         .setColor(0x0099FF)
         .setDescription('This interface can be used to manage temporary voice channels.');
