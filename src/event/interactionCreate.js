@@ -45,14 +45,14 @@ module.exports = async (client, interaction) => {
                 const missingPermissions = command.permissions.filter(perm => !interaction.member.permissions.has(BigInt(perm)));
                 if (missingPermissions.length > 0) {
                     await interaction.deferReply({ ephemeral: true });
-                    interaction.editReply({ content: `You're missing permissions: ${missingPermissions.join(', ')}` });
+                    await interaction.editReply({ content: `You're missing permissions: ${missingPermissions.join(', ')}` });
                     setTimeout(() => {
                         interaction.deleteReply().catch(console.error);
                     }, 6000);
                     return;
                 }
             }
-            command.run(client, interaction);
+            await command.run(client, interaction, mongoUtils); // Pass mongoUtils to the command
 
         } catch (e) {
             console.log(e);
@@ -63,6 +63,9 @@ module.exports = async (client, interaction) => {
             }, 6000);
         }
     } else if (interaction.isButton()) {
+        // Assuming you have a function to fetch the tempChannel data
+        const voiceChannelData = await mongoUtils.fetchVoiceChannelData(interaction.member); // Fetch voice channel data
+        const tempChannel = voiceChannelData.tempChannels.find(channel => channel.someCondition); // Replace with your condition to find the correct tempChannel
         // Handle button interactions
         switch (interaction.customId) {
             case 'name':
@@ -70,45 +73,49 @@ module.exports = async (client, interaction) => {
                 await interaction.reply({ content: 'Name button clicked!', ephemeral: true });
                 break;
             case 'limit':
-                const channelId = tempChannel.TempChannel;
-                const channel = await interaction.guild.channels.fetch(channelId);
-                
-                if (interaction.member.id !== tempChannel.Owner) {
-                    await interaction.deferReply({ ephemeral: true });
-                    await interaction.editReply({ content: 'You are not the owner of this channel and cannot set the limit.' });
-                    setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
-                    return;
-                }
-
-                const modal = new ModalBuilder()
-                    .setCustomId('set_channel_limit_modal')
-                    .setTitle('Set Channel Limit');
-
-                const limitInput = new TextInputBuilder()
-                    .setCustomId('channel_limit_input')
-                    .setLabel('Enter the channel limit:')
-                    .setStyle(TextInputStyle.Short)
-                    .setPlaceholder('e.g., 5')
-                    .setRequired(true);
-
-                const row = new ActionRowBuilder().addComponents(limitInput);
-                modal.addComponents(row);
-                await interaction.showModal(modal);
-
-                // Listen for the modal submit interaction
-                const filter = (i) => i.customId === 'set_channel_limit_modal' && i.user.id === interaction.user.id;
-                const submittedInteraction = await interaction.awaitModalSubmit({ filter, time: 60000 }).catch(console.error);
-
-                if (submittedInteraction) {
-                    const limitValue = submittedInteraction.fields.getTextInputValue('channel_limit_input');
-
-                    if (tempChannel.TempChannel === channel.id) {
-                        await channel.setUserLimit(limitValue);
-                        await submittedInteraction.deferReply({ ephemeral: true });
-                        await submittedInteraction.editReply({ content: `Channel limit set to ${limitValue}!` });
-                    } else {
-                        await submittedInteraction.reply({ content: 'Failed to set channel limit. This channel is not a voice channel.', ephemeral: true });
+                if (tempChannel) {
+                    const channelId = tempChannel.TempChannel;
+                    const channel = await interaction.guild.channels.fetch(channelId);
+                    
+                    if (interaction.member.id !== tempChannel.Owner) {
+                        await interaction.deferReply({ ephemeral: true });
+                        await interaction.editReply({ content: 'You are not the owner of this channel and cannot set the limit.' });
+                        setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
+                        return;
                     }
+
+                    const modal = new ModalBuilder()
+                        .setCustomId('set_channel_limit_modal')
+                        .setTitle('Set Channel Limit');
+
+                    const limitInput = new TextInputBuilder()
+                        .setCustomId('channel_limit_input')
+                        .setLabel('Enter the channel limit:')
+                        .setStyle(TextInputStyle.Short)
+                        .setPlaceholder('e.g., 5')
+                        .setRequired(true);
+
+                    const row = new ActionRowBuilder().addComponents(limitInput);
+                    modal.addComponents(row);
+                    await interaction.showModal(modal);
+
+                    // Listen for the modal submit interaction
+                    const filter = (i) => i.customId === 'set_channel_limit_modal' && i.user.id === interaction.user.id;
+                    const submittedInteraction = await interaction.awaitModalSubmit({ filter, time: 60000 }).catch(console.error);
+
+                    if (submittedInteraction) {
+                        const limitValue = submittedInteraction.fields.getTextInputValue('channel_limit_input');
+
+                        if (tempChannel.TempChannel === channel.id) {
+                            await channel.setUserLimit(limitValue);
+                            await submittedInteraction.deferReply({ ephemeral: true });
+                            await submittedInteraction.editReply({ content: `Channel limit set to ${limitValue}!` });
+                        } else {
+                            await submittedInteraction.reply({ content: 'Failed to set channel limit. This channel is not a voice channel.', ephemeral: true });
+                        }
+                    }
+                } else {
+                    await interaction.reply({ content: 'Failed to fetch voice channel data.', ephemeral: true });
                 }
                 break;
             case 'privacy':
