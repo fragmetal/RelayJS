@@ -2,6 +2,11 @@ const { PermissionFlagsBits, ChannelType } = require('discord.js'); // Added imp
 const MongoUtilities = require('../utils/db');
 
 module.exports = async (client, oldState, newState) => {
+    // Check if the bot is in developer mode
+    if (client.devMode === true) {
+        return; // Exit if in developer mode
+    }
+
     // Initialize MongoUtilities
     const mongoUtils = new MongoUtilities(client);
 
@@ -131,26 +136,28 @@ module.exports = async (client, oldState, newState) => {
     }
     const channelData = await mongoUtils.fetchVoiceChannelData(oldState.member); // Fetch channel data from the database
     // Check if the channel has become empty
-    if (oldState.channel && !newState.channel && oldState.channel.members.size === 0) {
+    if (oldState.channel && !newState.channel) {
         const channel = oldState.channel; // Define the channel variable
-        if (channel.id !== settings.JoinCreate && channel.id !== newState.guild.afkChannelId && channelData.tempChannels.some(temp => temp.TempChannel === channel.id)) {
-            // Check if any owner's channels are not empty
-            const ownerChannelsNotEmpty = await Promise.all(channelData.ownerChannels.map(async temp => {
-                const ownerChannel = await oldState.guild.channels.fetch(temp.TempChannel); // Fetch the channel by ID
-                return ownerChannel && ownerChannel.members.size > 0; // Check if the channel exists and has members
-            }));
+        if (channel.members.size === 0) { // Check if the channel is empty
+            if (channel.id !== settings.JoinCreate && channel.id !== newState.guild.afkChannelId && channelData.tempChannels.some(temp => temp.TempChannel === channel.id)) {
+                // Check if any owner's channels are not empty
+                const ownerChannelsNotEmpty = await Promise.all(channelData.ownerChannels.map(async temp => {
+                    const ownerChannel = await oldState.guild.channels.fetch(temp.TempChannel); // Fetch the channel by ID
+                    return ownerChannel && ownerChannel.members.size > 0; // Check if the channel exists and has members
+                }));
 
-            // Check if any of the channels are not empty
-            if (!ownerChannelsNotEmpty.some(isNotEmpty => isNotEmpty)) { // Only delete if no other channels are occupied
-                try {
-                    await channel.delete();
-                    await mongoUtils.updateDB('voice_channels', { _id: channel.guild.id }, {
-                        $pull: {
-                            temp_channels: { TempChannel: channel.id } // Use channel ID for the pull operation
-                        }
-                    });
-                } catch (error) {
-                    console.error(`Failed to delete empty channel: ${channel.name}`, error);
+                // Check if any of the channels are not empty
+                if (!ownerChannelsNotEmpty.some(isNotEmpty => isNotEmpty)) { // Only delete if no other channels are occupied
+                    try {
+                        await channel.delete();
+                        await mongoUtils.updateDB('voice_channels', { _id: channel.guild.id }, {
+                            $pull: {
+                                temp_channels: { TempChannel: channel.id } // Use channel ID for the pull operation
+                            }
+                        });
+                    } catch (error) {
+                        console.error(`Failed to delete empty channel: ${channel.name}`, error);
+                    }
                 }
             }
         }

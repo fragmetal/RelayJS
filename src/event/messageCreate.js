@@ -1,6 +1,11 @@
 const { PermissionFlagsBits } = require("discord.js");
 
 module.exports = async (client, message) => {
+    // Check if the bot is in developer mode
+    if (client.devMode === true) {
+        return; // Exit if in developer mode
+    }
+
     if (message.author.bot) return;
 
     // Ensure the member data is available

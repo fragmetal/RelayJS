@@ -4,6 +4,11 @@ const MongoUtilities = require('../utils/db');
 const cooldowns = new Collection();
 
 module.exports = async (client, interaction) => {
+    // Check if the bot is in developer mode
+    if (client.devMode === true && interaction.commandName !== 'dev') {
+        return; // Exit if in developer mode and not the /dev command
+    }
+
     const mongoUtils = new MongoUtilities(client);
     if (interaction.isCommand()) {
         if (!interaction.guild) return;
