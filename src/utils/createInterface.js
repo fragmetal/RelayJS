@@ -3,7 +3,6 @@ const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('
 const createInterface = async (channel) => {
     const embed = new EmbedBuilder()
         .setColor(0x0099FF)
-        .setImage('attachment://NeverGonnaGiveYouUp.png') // Set the image in the embed
         .setDescription('This interface can be used to manage temporary voice channels.');
 
     const row1 = new ActionRowBuilder()
@@ -11,23 +10,23 @@ const createInterface = async (channel) => {
             new ButtonBuilder()
                 .setCustomId('name')
                 .setLabel('🔗') // Icon for Name
-                .setStyle(ButtonStyle.Primary),
+                .setStyle(ButtonStyle.Secondary),
             new ButtonBuilder()
                 .setCustomId('limit')
                 .setLabel('♾️') // Icon for Limit
-                .setStyle(ButtonStyle.Primary),
+                .setStyle(ButtonStyle.Secondary),
             new ButtonBuilder()
                 .setCustomId('region')
                 .setLabel('🌍') // Icon for Region
-                .setStyle(ButtonStyle.Primary),
+                .setStyle(ButtonStyle.Secondary),
             new ButtonBuilder()
                 .setCustomId('privacy')
                 .setLabel('🔒') // Icon for Privacy
-                .setStyle(ButtonStyle.Primary),
+                .setStyle(ButtonStyle.Secondary),
             new ButtonBuilder()
                 .setCustomId('waiting')
                 .setLabel('⏳') // Icon for Waiting
-                .setStyle(ButtonStyle.Primary)
+                .setStyle(ButtonStyle.Secondary)
         );
 
     const row2 = new ActionRowBuilder()
@@ -35,19 +34,19 @@ const createInterface = async (channel) => {
             new ButtonBuilder()
                 .setCustomId('trust')
                 .setLabel('✅') // Icon for Trust
-                .setStyle(ButtonStyle.Success),
+                .setStyle(ButtonStyle.Secondary),
             new ButtonBuilder()
                 .setCustomId('untrust')
                 .setLabel('❌') // Icon for Untrust
-                .setStyle(ButtonStyle.Danger),
+                .setStyle(ButtonStyle.Secondary),
             new ButtonBuilder()
                 .setCustomId('invite')
                 .setLabel('📩') // Icon for Invite
-                .setStyle(ButtonStyle.Primary),
+                .setStyle(ButtonStyle.Secondary),
             new ButtonBuilder()
                 .setCustomId('kick')
                 .setLabel('🚫') // Icon for Kick
-                .setStyle(ButtonStyle.Danger)
+                .setStyle(ButtonStyle.Secondary)
         );
 
     const row3 = new ActionRowBuilder()
@@ -55,22 +54,40 @@ const createInterface = async (channel) => {
             new ButtonBuilder()
                 .setCustomId('thread')
                 .setLabel('🧵') // Icon for Thread
-                .setStyle(ButtonStyle.Primary),
+                .setStyle(ButtonStyle.Secondary),
             new ButtonBuilder()
                 .setCustomId('claim')
                 .setLabel('👑') // Icon for Claim
-                .setStyle(ButtonStyle.Primary),
+                .setStyle(ButtonStyle.Secondary),
             new ButtonBuilder()
                 .setCustomId('transfer')
                 .setLabel('🔄') // Icon for Transfer
-                .setStyle(ButtonStyle.Primary),
+                .setStyle(ButtonStyle.Secondary),
             new ButtonBuilder()
                 .setCustomId('delete')
                 .setLabel('🗑️') // Icon for Delete
-                .setStyle(ButtonStyle.Danger)
+                .setStyle(ButtonStyle.Secondary)
         );
 
-    await channel.send({ embeds: [embed], components: [row1, row2, row3] });
+    //await channel.send({ embeds: [embed], components: [row1, row2, row3] });
+    // Fetch the last message sent by the bot in the channel
+    const messages = await interaction.channel.messages.fetch({ limit: 1 });
+    const botMessage = messages.find(msg => msg.author.id === interaction.client.user.id);
+
+    // Delete the previous bot message if it exists
+    if (botMessage) {
+        await botMessage.delete();
+    }
+
+    // Send the new message with the embed and buttons
+    await interaction.channel.send({
+        embeds: [embed],
+        components: [row1, row2, row3],
+        files: [{
+            attachment: 'attachment://NeverGonnaGiveYouUp.png', // Ensure this path is correct
+            name: 'NeverGonnaGiveYouUp.png' // Name of the file
+        }]
+    });
 };
 
 module.exports = createInterface; // Export the function
