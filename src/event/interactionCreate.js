@@ -91,22 +91,27 @@ module.exports = async (client, interaction) => {
                 case 'lock_channel':
                     await interaction.deferReply({ ephemeral: true });
                     await interaction.editReply({ content: 'Coming Soon!' });
+                    setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
                     break;
                 case 'unlock_channel':
                     await interaction.deferReply({ ephemeral: true });
                     await interaction.editReply({ content: 'Coming Soon!' });
+                    setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
                     break;
                 case 'hide_channel':
                     await interaction.deferReply({ ephemeral: true });
                     await interaction.editReply({ content: 'Coming Soon!!' });
+                    setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
                     break;
                 case 'show_channel':
                     await interaction.deferReply({ ephemeral: true });
                     await interaction.editReply({ content: 'Coming Soon!!' });
+                    setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
                     break;
                 case 'claim_channel':
                     await interaction.deferReply({ ephemeral: true });
                     await interaction.editReply({ content: 'Coming Soon!!' });
+                    setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
                     break;
                 case 'limit_channel':
                     const channelId = tempChannel.TempChannel;
@@ -115,8 +120,10 @@ module.exports = async (client, interaction) => {
                     // Defer the interaction first
                     await interaction.deferReply({ ephemeral: true });
 
-                    if (interaction.member.id !== tempChannel.TempOwner) {
+                    if (interaction.member.id !== tempChannel.Owner) {
+                        await interaction.deferReply({ ephemeral: true });
                         await interaction.editReply({ content: 'You are not the owner of this channel and cannot set the limit.' });
+                        setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
                         return;
                     }
 
@@ -158,10 +165,13 @@ module.exports = async (client, interaction) => {
         } catch (error) {
             console.error(error);
             if (interaction.deferred) {
+                await interaction.deferReply({ ephemeral: true });
                 await interaction.editReply({ content: 'An error occurred while processing your request.' });
+                setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
             } else {
                 await interaction.deferReply({ ephemeral: true });
                 await interaction.editReply({ content: 'An error occurred while processing your request.' });
+                setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
             }
         }
     }
