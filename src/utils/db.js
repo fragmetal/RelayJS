@@ -127,9 +127,9 @@ class MongoUtilities {
             // Return the necessary fields
             return {
                 tempChannels: result.temp_channels || [],
-                Owner: result.Owner || null,
                 vc_dashboard: result.vc_dashboard || null,
-                JoinCreate: result.JoinCreate || null
+                JoinCreate: result.JoinCreate || null,
+                gamechat: result.gamechat || null
             };
 
         } catch (error) {

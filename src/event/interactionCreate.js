@@ -63,41 +63,54 @@ module.exports = async (client, interaction) => {
             }, 6000);
         }
     } else if (interaction.isButton()) {
-        // Assuming you have a function to fetch the tempChannel data
-        const voiceChannelData = await mongoUtils.fetchVoiceChannelData(interaction.member); // Fetch voice channel data
-        const tempChannel = voiceChannelData.tempChannels.find(channel => channel.someCondition); // Replace with your condition to find the correct tempChannel
+        // Fetch the tempChannel data
+        const voiceChannelData = await mongoUtils.fetchVoiceChannelData(interaction.member);
+        const tempChannel = voiceChannelData.tempChannels.find(channel => channel.Owner === interaction.member.id);
+        const channelId = tempChannel ? tempChannel.TempChannel : null; // Ensure tempChannel is defined
+
         // Handle button interactions
         switch (interaction.customId) {
             case 'name':
                 // Handle name button logic
-                await interaction.reply({ content: 'Name button clicked!', ephemeral: true });
+                await interaction.reply({ content: 'You clicked the Name button!', ephemeral: true });
                 break;
             case 'limit':
-                if (tempChannel) {
-                    const channelId = tempChannel.TempChannel;
-                    const channel = await interaction.guild.channels.fetch(channelId);
-                    
+                if (channelId) {
+                    const channel = interaction.guild.channels.cache.get(channelId); // Use cache instead of fetch
+                    if (!channel) {
+                        await interaction.reply({ content: 'Channel not found. Please try again.', ephemeral: true });
+                        return;
+                    }
+                    console.log(channel);
                     if (interaction.member.id !== tempChannel.Owner) {
-                        await interaction.deferReply({ ephemeral: true });
-                        await interaction.editReply({ content: 'You are not the owner of this channel and cannot set the limit.' });
-                        setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
+                        await interaction.reply({ content: 'You are not the owner of this channel and cannot set the limit.', ephemeral: true });
                         return;
                     }
 
-                    const modal = new ModalBuilder()
-                        .setCustomId('set_channel_limit_modal')
-                        .setTitle('Set Channel Limit');
+                    // Check if the interaction is still valid before showing the modal
+                    if (!interaction.deferred && !interaction.replied) {
+                        try {
+                            const modal = new ModalBuilder()
+                                .setCustomId('set_channel_limit_modal')
+                                .setTitle('Set Channel Limit');
 
-                    const limitInput = new TextInputBuilder()
-                        .setCustomId('channel_limit_input')
-                        .setLabel('Enter the channel limit:')
-                        .setStyle(TextInputStyle.Short)
-                        .setPlaceholder('e.g., 5')
-                        .setRequired(true);
+                            const limitInput = new TextInputBuilder()
+                                .setCustomId('channel_limit_input')
+                                .setLabel('Enter the channel limit:')
+                                .setStyle(TextInputStyle.Short)
+                                .setPlaceholder('e.g., 5')
+                                .setRequired(true);
 
-                    const row = new ActionRowBuilder().addComponents(limitInput);
-                    modal.addComponents(row);
-                    await interaction.showModal(modal);
+                            const row = new ActionRowBuilder().addComponents(limitInput);
+                            modal.addComponents(row);
+                            await interaction.showModal(modal);
+                        } catch (error) {
+                            console.error('Failed to show modal:', error);
+                            await interaction.reply({ content: 'An error occurred while trying to show the modal. Please try again.', ephemeral: true });
+                        }
+                    } else {
+                        await interaction.reply({ content: 'Interaction has expired. Please try again.', ephemeral: true });
+                    }
 
                     // Listen for the modal submit interaction
                     const filter = (i) => i.customId === 'set_channel_limit_modal' && i.user.id === interaction.user.id;
@@ -105,14 +118,9 @@ module.exports = async (client, interaction) => {
 
                     if (submittedInteraction) {
                         const limitValue = submittedInteraction.fields.getTextInputValue('channel_limit_input');
-
-                        if (tempChannel.TempChannel === channel.id) {
-                            await channel.setUserLimit(limitValue);
-                            await submittedInteraction.deferReply({ ephemeral: true });
-                            await submittedInteraction.editReply({ content: `Channel limit set to ${limitValue}!` });
-                        } else {
-                            await submittedInteraction.reply({ content: 'Failed to set channel limit. This channel is not a voice channel.', ephemeral: true });
-                        }
+                        await channel.setUserLimit(limitValue);
+                        await submittedInteraction.deferUpdate(); // Use deferUpdate instead of deferReply
+                        await submittedInteraction.reply({ content: `Channel limit successfully set to ${limitValue}!` });
                     }
                 } else {
                     await interaction.reply({ content: 'Failed to fetch voice channel data.', ephemeral: true });
@@ -120,74 +128,50 @@ module.exports = async (client, interaction) => {
                 break;
             case 'privacy':
                 // Handle privacy button logic
-                await interaction.deferReply({ ephemeral: true });
-                await interaction.reply({ content: 'Privacy button clicked!', ephemeral: true });
-                setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
+                await interaction.reply({ content: 'You clicked the Privacy button!', ephemeral: true });
                 break;
             case 'waiting':
                 // Handle waiting button logic
-                await interaction.deferReply({ ephemeral: true });
-                await interaction.reply({ content: 'Waiting button clicked!', ephemeral: true });
-                setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
+                await interaction.reply({ content: 'You clicked the Waiting button!', ephemeral: true });
                 break;
             case 'trust':
                 // Handle trust button logic
-                await interaction.deferReply({ ephemeral: true });
-                await interaction.reply({ content: 'Trust button clicked!', ephemeral: true });
-                setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
+                await interaction.reply({ content: 'You clicked the Trust button!', ephemeral: true });
                 break;
             case 'untrust':
                 // Handle untrust button logic
-                await interaction.deferReply({ ephemeral: true });
-                await interaction.reply({ content: 'Untrust button clicked!', ephemeral: true });
-                setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
+                await interaction.reply({ content: 'You clicked the Untrust button!', ephemeral: true });
                 break;
             case 'invite':
                 // Handle invite button logic
-                await interaction.deferReply({ ephemeral: true });
-                await interaction.reply({ content: 'Invite button clicked!', ephemeral: true });
-                setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
+                await interaction.reply({ content: 'You clicked the Invite button!', ephemeral: true });
                 break;
             case 'kick':
                 // Handle kick button logic
-                await interaction.deferReply({ ephemeral: true });
-                await interaction.reply({ content: 'Kick button clicked!', ephemeral: true });
-                setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
+                await interaction.reply({ content: 'You clicked the Kick button!', ephemeral: true });
                 break;
             case 'region':
                 // Handle region button logic
-                await interaction.deferReply({ ephemeral: true });
-                await interaction.reply({ content: 'Region button clicked!', ephemeral: true });
-                setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
+                await interaction.reply({ content: 'You clicked the Region button!', ephemeral: true });
                 break;
             case 'thread':
                 // Handle thread button logic
-                await interaction.deferReply({ ephemeral: true });
-                await interaction.reply({ content: 'Thread button clicked!', ephemeral: true });
-                setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
+                await interaction.reply({ content: 'You clicked the Thread button!', ephemeral: true });
                 break;
             case 'claim':
-                // Handle transfer button logic
-                await interaction.deferReply({ ephemeral: true });
-                await interaction.reply({ content: 'Claim button clicked!', ephemeral: true });
-                setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
+                // Handle claim button logic
+                await interaction.reply({ content: 'You clicked the Claim button!', ephemeral: true });
                 break;
             case 'transfer':
                 // Handle transfer button logic
-                await interaction.deferReply({ ephemeral: true });
-                await interaction.reply({ content: 'Transfer button clicked!', ephemeral: true });
-                setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
+                await interaction.reply({ content: 'You clicked the Transfer button!', ephemeral: true });
                 break;
             case 'delete':
                 // Handle delete button logic
-                await interaction.deferReply({ ephemeral: true });
-                await interaction.reply({ content: 'Delete button clicked!', ephemeral: true });
-                setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
+                await interaction.reply({ content: 'You clicked the Delete button!', ephemeral: true });
                 break;
             default:
-                await interaction.deferReply({ ephemeral: true });
-                await interaction.editReply({ content: 'Unknown action!' });
-                setTimeout(() => interaction.deleteReply().catch(console.error), 6000);
+                await interaction.reply({ content: 'Unknown action!', ephemeral: true });
         }
     }
 };

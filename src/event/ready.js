@@ -1,4 +1,4 @@
-const { ActivityType, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js'); // Ensure correct imports including EmbedBuilder
+const { ActivityType } = require('discord.js'); // Ensure correct imports
 const MongoUtilities = require('../utils/db'); // Import the class directly
 const createInterface = require('../utils/createInterface'); // Import the function
 
@@ -22,5 +22,7 @@ module.exports = async (client) => {
 
     if (channel) {
         await createInterface(channel); // Call the function to create the interface
+    } else {
+        console.error('Dashboard channel not found.');
     }
 };
