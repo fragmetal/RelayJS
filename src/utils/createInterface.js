@@ -2,8 +2,9 @@ const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('
 
 const createInterface = async (interaction) => {
     const embed = new EmbedBuilder()
-        .setColor(0x0099FF)
-        .setDescription('This interface can be used to manage temporary voice channels.');
+        embed.setColor(0x0099FF)
+            .setImage('attachment://NeverGonnaGiveYouUp.png') // Set the image in the embed
+            .setDescription('This interface can be used to manage temporary voice channels.');
 
     const row1 = new ActionRowBuilder()
         .addComponents(
