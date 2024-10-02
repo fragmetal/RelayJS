@@ -1,10 +1,10 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
 
-const createInterface = async (interaction) => {
+const createInterface = async (channel) => {
     const embed = new EmbedBuilder()
-        embed.setColor(0x0099FF)
-            .setImage('attachment://NeverGonnaGiveYouUp.png') // Set the image in the embed
-            .setDescription('This interface can be used to manage temporary voice channels.');
+        .setColor(0x0099FF)
+        .setImage('attachment://NeverGonnaGiveYouUp.png') // Set the image in the embed
+        .setDescription('This interface can be used to manage temporary voice channels.');
 
     const row1 = new ActionRowBuilder()
         .addComponents(
@@ -70,7 +70,7 @@ const createInterface = async (interaction) => {
                 .setStyle(ButtonStyle.Danger)
         );
 
-    await interaction.reply({ embeds: [embed], components: [row1, row2, row3] });
+    await channel.send({ embeds: [embed], components: [row1, row2, row3] });
 };
 
 module.exports = createInterface; // Export the function
