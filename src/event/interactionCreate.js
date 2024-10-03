@@ -257,14 +257,6 @@ module.exports = async (client, interaction) => {
             case 'transfer':
                 if (!interaction.replied) {
                     await interaction.deferReply({ ephemeral: true });
-                    if (!tempChannel.TempChannel) {
-                        await interaction.editReply({ content: 'You do not own any temporary channel.', ephemeral: true });
-                        setTimeout(() => {
-                            interaction.deleteReply().catch(console.error);
-                        }, 6000);
-                        return;
-                    }
-
                     const member = interaction.member;
                     const voiceChannel = member.voice.channel;
 
@@ -275,7 +267,13 @@ module.exports = async (client, interaction) => {
                         }, 6000);
                         return;
                     }
-
+                    if (!tempChannel.TempChannel) {
+                        await interaction.editReply({ content: 'You do not own any temporary channel.', ephemeral: true });
+                        setTimeout(() => {
+                            interaction.deleteReply().catch(console.error);
+                        }, 6000);
+                        return;
+                    }
                     // Fetch users in the voice channel except the owner
                     const users = voiceChannel.members.filter(user => user.id !== member.id).map(user => user.user);
                     const userOptions = users.map(user => ({
