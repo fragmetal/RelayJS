@@ -189,6 +189,7 @@ module.exports = {
                     gamechat: gameChatChannel ? gameChatChannel.id : null,
                     JoinCreate: joinCreateChannel ? joinCreateChannel.id : null,
                     vc_dashboard: dashboardChannel ? dashboardChannel.id : null,
+                    categoryChannelId: newCategoryChannel ? newCategoryChannel.id : null,
                     temp_channels: []
                 };
 
@@ -199,8 +200,7 @@ module.exports = {
                     await interaction.editReply({ content: 'Failed to save channel information. Please try again.' });
                 }
 
-                // After creating channels, you can call createInterface
-                await createInterface(interaction); // Call the function to create the interface
+                await createInterface(dashboardChannel);
             } catch (error) {
                 console.error('Error creating channels:', error);
                 await interaction.editReply({ content: 'Failed to create channels. Please try again.' });
@@ -216,13 +216,14 @@ module.exports = {
             const existingDocument = await mongoUtils.loadFromDB(dbCollection, query);
 
             if (!existingDocument || existingDocument.length === 0) {
-                await interaction.editReply({ content: 'No configuration found for this server.' });
+                //await interaction.editReply({ content: 'No configuration found for this server.' });
                 return;
             }
             
             const dashboardChannelId = existingDocument[0].vc_dashboard; // Get the ID of the dashboard channel
             const joinCreateChannelId = existingDocument[0].JoinCreate; // Get the ID of the join create channel
             const gameChatChannelId = existingDocument[0].gamechat; // Get the ID of the gamechat channel
+            const categoryChannelId = existingDocument[0].categoryChannelId; // Assuming you have stored the category ID
 
             const channelsToDelete = [dashboardChannelId, joinCreateChannelId, gameChatChannelId];
 
@@ -264,6 +265,16 @@ module.exports = {
             });
 
             await Promise.all(deletePromises);
+
+            // Delete the category channel
+            const categoryChannel = interaction.guild.channels.cache.get(categoryChannelId);
+            if (categoryChannel) {
+                try {
+                    await categoryChannel.delete();
+                } catch (error) {
+                    console.error(`Failed to delete category channel: ${categoryChannel.name}`, error);
+                }
+            }
 
             // Remove all temp channels from the database
             const deleteResult = await mongoUtils.deleteFromDB('voice_channels', { _id: interaction.guild.id });

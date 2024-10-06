@@ -49,7 +49,6 @@ module.exports = async (client, oldState, newState) => {
 
     const settingsArray = await mongoUtils.loadFromDB('voice_channels', { _id: newState.guild.id });
     if (!settingsArray || settingsArray.length === 0 || !settingsArray[0].JoinCreate) {
-        //console.error("JoinCreate channel ID not found in the database.");
         return;
     }
     const settings = settingsArray[0];
@@ -57,8 +56,7 @@ module.exports = async (client, oldState, newState) => {
         
         const member = newState.member;
         const channelName = member && member.displayName ? `⏳| ${member.displayName}'s` : "⏳| Default Channel";
-
-        const categoryChannel = newState.channel.parent;
+        const categoryChannel = settings.categoryChannelId;
 
         // Check if categoryChannel is valid
         if (!categoryChannel) {
@@ -73,27 +71,23 @@ module.exports = async (client, oldState, newState) => {
                 console.error("Failed to fetch JoinCreate channel.");
                 return;
             }
-            const permissionOverwrites = joinCreateChannel.permissionOverwrites.cache.map(overwrite => {
-                return {
-                    id: overwrite.id,
-                    allow: overwrite.allow ? overwrite.allow.toArray() : [], // Check if allow is not null
-                    deny: overwrite.deny ? overwrite.deny.toArray() : [] // Check if deny is not null
-                };
-            });
 
             const newChannel = await guild.channels.create({
                 name: channelName, // Ensure the name field is set
                 type: ChannelType.GuildVoice,
                 parent: categoryChannel,
                 permissionOverwrites: [
-                    ...permissionOverwrites, // Apply the permission overwrites from JoinCreate
                     {
-                        id: member.id,
-                        allow: [PermissionFlagsBits.ManageChannels, PermissionFlagsBits.Connect, PermissionFlagsBits.Speak],
+                        id: guild.id, // @everyone
+                        allow: [PermissionFlagsBits.Connect, PermissionFlagsBits.ViewChannel, PermissionFlagsBits.Speak],
                     },
                     {
-                        id: client.user.id,
-                        allow: [PermissionFlagsBits.ManageChannels, PermissionFlagsBits.Connect],
+                        id: member.id, // User
+                        allow: [PermissionFlagsBits.ManageChannels, PermissionFlagsBits.Connect, PermissionFlagsBits.ViewChannel, PermissionFlagsBits.Speak],
+                    },
+                    {
+                        id: client.user.id, // Bot
+                        allow: [PermissionFlagsBits.ManageChannels, PermissionFlagsBits.Connect, PermissionFlagsBits.ViewChannel]
                     }
                 ],
             }).catch(error => {
@@ -138,11 +132,17 @@ module.exports = async (client, oldState, newState) => {
     // Check if the channel has become empty
     if (oldState.channel && !newState.channel) {
         const channel = oldState.channel; // Define the channel variable
-        //console.log(`Check if the channel has become empty`);
         if (channel.members.size === 0) { // Check if the channel is empty
             if (channel.id !== settings.JoinCreate && channel.id !== newState.guild.afkChannelId && channelData.tempChannels.some(temp => temp.TempChannel === channel.id)) {
                 try {
-                    //console.log(`Deleting empty channel: ${channel.name}`);
+                    // Check if the bot has permission to delete the channel
+                    const botMember = await channel.guild.members.fetch(client.user.id);
+                    if (!botMember.permissions.has(PermissionFlagsBits.ManageChannels)) {
+                        console.error("The bot does not have permission to delete channels.");
+                        return; // Exit if the bot lacks permission
+                    }
+
+                    // Attempt to delete the empty channel
                     await channel.delete();
                     await mongoUtils.updateDB('voice_channels', { _id: channel.guild.id }, {
                         $pull: {

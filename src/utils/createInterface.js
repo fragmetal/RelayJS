@@ -2,9 +2,8 @@ const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('
 
 const createInterface = async (channel) => {
     // Check if the channel is valid
-    if (!channel) {
-        console.error('Invalid channel not found.');
-        return;
+    if (!channel.isTextBased()) { // Updated method to check if the channel is text-based
+        throw new Error('Channel is not a text-based channel');
     }
 
     const embed = new EmbedBuilder()
@@ -23,12 +22,12 @@ const createInterface = async (channel) => {
             new ButtonBuilder().setCustomId('limit').setLabel('♾️').setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId('privacy').setLabel('🔒').setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId('invite').setLabel('📩').setStyle(ButtonStyle.Secondary),
-            new ButtonBuilder().setCustomId('kick').setLabel('🚫').setStyle(ButtonStyle.Secondary)
+            new ButtonBuilder().setCustomId('kick').setLabel('🚫').setStyle(ButtonStyle.Secondary),
+            new ButtonBuilder().setCustomId('claim').setLabel('👑').setStyle(ButtonStyle.Secondary)
         );
 
     const row2 = new ActionRowBuilder()
         .addComponents(
-            new ButtonBuilder().setCustomId('claim').setLabel('👑').setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId('transfer').setLabel('🔄').setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId('delete').setLabel('🗑️').setStyle(ButtonStyle.Secondary)
         );

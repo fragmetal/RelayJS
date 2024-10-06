@@ -9,20 +9,25 @@ module.exports = async (client) => {
     client.logger.info(`[!] ${client.user.username} is now started...`);
     client.user.setActivity('customstatus', { type: ActivityType.Custom, state: '🛠️ USE /' });
 
-    const guildId = client.guilds.cache.first().id; // Use the first guild ID for demonstration
-    const existingDocument = await mongoUtils.getVoiceChannelConfig(guildId); // Call the method on the instance
-    if (!existingDocument) {
-        console.error('No configuration found for this server.');
-        return;
+    const guilds = client.guilds.cache; // Get all guilds the bot is in
+    if (guilds.size === 0) {
+        console.error('No guilds found.'); // Handle the case where there are no guilds
+        return; // Exit if no guilds are available
     }
 
-    // Use the createInterface function
-    const dashboardChannelId = existingDocument.vc_dashboard;
-    const channel = await client.channels.fetch(dashboardChannelId);
+    for (const guild of guilds.values()) { // Iterate through each guild
+        const guildId = guild.id; // Get the current guild ID
+        const existingDocument = await mongoUtils.getVoiceChannelConfig(guildId); // Call the method on the instance
+        if (existingDocument) {
+            // Use the createInterface function
+            const dashboardChannelId = existingDocument.vc_dashboard;
+            const channel = await client.channels.fetch(dashboardChannelId);
 
-    if (channel) {
-        await createInterface(channel); // Call the function to create the interface
-    } else {
-        console.error('Dashboard channel not found.');
+            if (channel) {
+                await createInterface(channel); // Call the function to create the interface
+            } else {
+                console.error(`Dashboard channel not found for guild: ${guild.name}.`);
+            }
+        }
     }
 };
