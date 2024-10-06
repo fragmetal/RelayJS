@@ -201,6 +201,14 @@ module.exports = async (client, interaction) => {
                         return;
                     }
 
+                    if (interaction.member.id !== tempChannel.Owner) {
+                        await interaction.editReply({ content: 'You are not the owner of this channel and cannot use this action.', ephemeral: true });
+                        setTimeout(() => {
+                            interaction.deleteReply().catch(console.error);
+                        }, 6000);
+                        return;
+                    }
+
                     const privacyOptions = [
                         {
                             label: 'Hide Voice Channel',
