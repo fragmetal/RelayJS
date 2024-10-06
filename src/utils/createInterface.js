@@ -10,8 +10,6 @@ const createInterface = async (channel) => {
     const embed = new EmbedBuilder()
         .setColor(0x0099FF)
         .setDescription('**This interface to manage temporary voice channels.** \n\n' +
-                        '**__Use the buttons below to:__** \n\n' +
-                        '🔗 **Name**: Change the name of the voice channel.\n' +
                         '♾️ **Limit**: Set a user limit for the voice channel.\n' +
                         '🔒 **Privacy**: Toggle the privacy settings of the channel.\n' +
                         '📩 **Invite**: Send an invite link to the channel.\n' +
@@ -22,7 +20,6 @@ const createInterface = async (channel) => {
 
     const row1 = new ActionRowBuilder()
         .addComponents(
-            new ButtonBuilder().setCustomId('name').setLabel('🔗').setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId('limit').setLabel('♾️').setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId('privacy').setLabel('🔒').setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId('invite').setLabel('📩').setStyle(ButtonStyle.Secondary),

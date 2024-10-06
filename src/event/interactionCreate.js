@@ -73,15 +73,6 @@ module.exports = async (client, interaction) => {
         
         // Handle button interactions
         switch (interaction.customId) {
-            case 'name':
-                if (!interaction.replied) {
-                    await interaction.deferReply({ ephemeral: true });
-                    await interaction.editReply({ content: 'You clicked the Name button!' });
-                    setTimeout(() => {
-                        interaction.deleteReply().catch(console.error);
-                    }, 6000);
-                }
-                break;
             case 'limit':
                 if (!tempChannel) {
                     if (!interaction.replied) {
