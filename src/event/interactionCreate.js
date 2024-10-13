@@ -326,6 +326,10 @@ module.exports = async (client, interaction) => {
                         }, 6000);
                         return;
                     }
+                    await interaction.editReply({ content: 'Coming soon!', ephemeral: true });
+                    setTimeout(() => {
+                        interaction.deleteReply().catch(console.error);
+                    }, 6000);
                 }
                 break;
             case 'kick':
@@ -345,6 +349,10 @@ module.exports = async (client, interaction) => {
                         }, 6000);
                         return;
                     }
+                    await interaction.editReply({ content: 'Coming soon!', ephemeral: true });
+                    setTimeout(() => {
+                        interaction.deleteReply().catch(console.error);
+                    }, 6000);
                 }
                 break;
             case 'claim':
@@ -459,11 +467,27 @@ module.exports = async (client, interaction) => {
 
                     collector.on('collect', async i => {
                         const newOwnerId = i.values[0];
+                        const oldOwnerId = tempChannel.Owner;
 
-                        // Update the owner in the database
-                        await mongoUtils.updateDB('voice_channels', { _id: member.guild.id, 'temp_channels.TempChannel': tempChannel.TempChannel }, { 'temp_channels.$.Owner': newOwnerId });
+                        try {
+                            // Remove old owner's permission overwrites
+                            await voiceChannel.permissionOverwrites.delete(oldOwnerId);
 
-                        await i.update({ content: `Ownership transferred to <@${newOwnerId}>`, components: [] });
+                            // Set new owner's permission overwrites
+                            await voiceChannel.permissionOverwrites.edit(newOwnerId, {
+                                [PermissionFlagsBits.Connect]: true,
+                                [PermissionFlagsBits.ManageChannels]: true,
+                            });
+
+                            // Update the owner in the database
+                            await mongoUtils.updateDB('voice_channels', { _id: member.guild.id, 'temp_channels.TempChannel': tempChannel.TempChannel }, { 'temp_channels.$.Owner': newOwnerId });
+
+                            await i.update({ content: `Ownership transferred to <@${newOwnerId}>`, components: [] });
+                        } catch (error) {
+                            console.error('Error updating channel permissions:', error);
+                            await i.update({ content: 'Failed to transfer ownership due to an error.', components: [] });
+                        }
+
                         setTimeout(() => {
                             i.deleteReply().catch(console.error);
                         }, 6000);
@@ -497,6 +521,10 @@ module.exports = async (client, interaction) => {
                         }, 6000);
                         return;
                     }
+                    await interaction.editReply({ content: 'Coming soon!', ephemeral: true });
+                    setTimeout(() => {
+                        interaction.deleteReply().catch(console.error);
+                    }, 6000);
                 }
                 break;
             default:
