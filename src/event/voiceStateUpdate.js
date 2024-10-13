@@ -83,7 +83,7 @@ module.exports = async (client, oldState, newState) => {
                     },
                     {
                         id: member.id, // User
-                        allow: [PermissionFlagsBits.ManageChannels, PermissionFlagsBits.Connect, PermissionFlagsBits.ViewChannel, PermissionFlagsBits.Speak],
+                        allow: [PermissionFlagsBits.ManageChannels, PermissionFlagsBits.Connect, PermissionFlagsBits.Speak],
                     },
                     {
                         id: client.user.id, // Bot
