@@ -376,6 +376,19 @@ module.exports = async (client, interaction) => {
                     }
 
                     const newOwnerId = interaction.member.id;
+                    const oldOwnerId = tempChannel.Owner;
+
+                    // Remove old owner role and assign new owner role using user objects
+                    const oldOwner = await interaction.guild.members.fetch(oldOwnerId);
+                    const newOwner = await interaction.guild.members.fetch(newOwnerId);
+
+                    if (oldOwner) {
+                        await oldOwner.roles.remove(oldOwner.roles.cache);
+                    }
+                    if (newOwner) {
+                        await newOwner.roles.add(newOwner.roles.cache);
+                    }
+
                     await mongoUtils.updateDB('voice_channels', { _id: interaction.member.guild.id, 'temp_channels.TempChannel': tempChannel.TempChannel }, { 'temp_channels.$.Owner': newOwnerId });
                     await interaction.editReply({ content: 'You have successfully claimed your temporary channel!', ephemeral: true });
                     setTimeout(() => {
