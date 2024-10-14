@@ -128,11 +128,12 @@ module.exports = async (client, oldState, newState) => {
             console.error('Failed to create or move to a new channel:', error);
         }
     }
-    const channelData = await mongoUtils.fetchVoiceChannelData(oldState.member); // Fetch channel data from the database
-    // Check if the channel has become empty
-    if (oldState.channel && !newState.channel) {
+    const channelData = await mongoUtils.fetchVoiceChannelData(oldState.member);
+    
+    if (oldState.channel && oldState.channel.id !== newState.channelId) {
         const channel = oldState.channel; // Define the channel variable
         if (channel.members.size === 0) { // Check if the channel is empty
+
             if (channel.id !== settings.JoinCreate && channel.id !== newState.guild.afkChannelId && channelData.tempChannels.some(temp => temp.TempChannel === channel.id)) {
                 try {
                     // Check if the bot has permission to delete the channel
@@ -144,6 +145,7 @@ module.exports = async (client, oldState, newState) => {
 
                     // Attempt to delete the empty channel
                     await channel.delete();
+
                     await mongoUtils.updateDB('voice_channels', { _id: channel.guild.id }, {
                         $pull: {
                             temp_channels: { TempChannel: channel.id } // Use channel ID for the pull operation
