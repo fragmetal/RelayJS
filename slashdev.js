@@ -15,6 +15,12 @@ readdirSync("./src/slashCommands/").map(async dir => {
     })
 })
 
+// Add context menu commands
+readdirSync("./src/contextMenus/").forEach(file => {
+	const command = require(`./src/contextMenus/${file}`);
+	commands.push(command.data.toJSON());
+});
+
 const rest = new REST({ version: "9" }).setToken(config.token);
 
 (async () => {

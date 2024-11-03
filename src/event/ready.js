@@ -1,8 +1,8 @@
 const { ActivityType } = require('discord.js'); // Ensure correct imports
 const MongoUtilities = require('../utils/db'); // Import the class directly
 const createInterface = require('../utils/createInterface'); // Import the function
-
 module.exports = async (client) => {
+
     const mongoUtils = new MongoUtilities(client); // Create an instance of MongoUtilities
 
     client.logger.info(`[!] The bot has ${client.slash.size} (/) commands`);

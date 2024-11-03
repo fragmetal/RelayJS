@@ -1,7 +1,5 @@
 const { Client, Collection, GatewayIntentBits } = require("discord.js");
 const http = require('http');
-const fs = require('fs');
-const path = require('path');
 
 const client = new Client({
     allowedMentions: { parse: ['users', 'roles'] },
@@ -20,26 +18,31 @@ const client = new Client({
 client.slash = new Collection();
 
 // SET UTILS
-const { logs } = require('./src/utils/logger.js');
-client.logger = require('./src/utils/logger.js')
+client.logger = require('./src/utils/logger.js');
 client.color = require('./src/utils/color.js');
 
 // SET CONFIG
 client.config = require('./config.js');
 
-// LOAD THE HANDLERS MANUALLY IN A MORE CONCISE WAY
-const handlers = ["error", "event", "mongodbHandler", "slashCommands"];
+const handlers = ["error", "event", "mongodbHandler", "slashCommands", "lavalinkhandler"];
 
 let loadedHandlerCount = 0; // Initialize a counter for loaded handlers
 
 try {
     handlers.forEach(handlerName => {
-        require(`./src/utils/handlers/${handlerName}.js`)(client);
+        if (handlerName === "lavalinkhandler") {
+            const LavalinkHandler = require(`./src/utils/handlers/${handlerName}.js`);
+            new LavalinkHandler(client); // Instantiate the class with 'new'
+        } else {
+            const handler = require(`./src/utils/handlers/${handlerName}.js`);
+            handler(client); // Call the function with client
+        }
         loadedHandlerCount++; // Increment the counter for each loaded handler
     });
 } catch (error) {
     console.error('Failed to load a handler:', error);
 }
+
 client.logger.loader(`${client.color.chalkcolor.red('[FINISH]')} ${loadedHandlerCount} handlers loaded`);
 
 client.login(client.config.token);
