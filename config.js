@@ -6,7 +6,7 @@ module.exports = {
     dbName: `Relay`
 };
 
-/*Pedro*/
+// /*Pedro*/
 // module.exports = {
 //     token: 'MTI4ODUxMjkwODk2NzU0Mjg0NA.GLNxMN.vndA6vXnQEVcQTtpOt5C-1RNoLdiNwfqbgf4Ys',
 //     botID: '1288512908967542844',

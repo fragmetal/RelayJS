@@ -14,7 +14,13 @@ module.exports = {
 
     run: async (client, interaction) => {
         const voiceChannel = interaction.member.voice.channel;
-
+        const node = client.manager.nodes.first();
+        if (!node || !node.connected) {
+            return interaction.reply({ content: 'The music node is not connected. Please try again later.', ephemeral: true })
+                .then(msg => {
+                    setTimeout(() => msg.delete(), 5000);
+                });
+        }
         if (!voiceChannel) {
             return interaction.reply({ content: 'You need to be in a voice channel to play music!', ephemeral: true })
                 .then(msg => {

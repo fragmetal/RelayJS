@@ -168,7 +168,7 @@ const server = http.createServer((req, res) => {
     }
 });
 
-// Start the server on port 3000
-server.listen(8080, '0.0.0.0', () => {
+
+server.listen(443, '0.0.0.0', () => {
     client.logger.info('Web Server running');
 });
