@@ -8,8 +8,9 @@ class LavalinkHandler {
             nodes: [
                 {
                     host: "lavalinkv3-id.serenetia.com", // Lavalink host
-                    port: 80,        // Lavalink port
+                    port: 443,        // Lavalink port
                     password: "BatuManaBisa", // Lavalink password
+                    secure: true,
                 },
             ],
             send(id, payload) {
