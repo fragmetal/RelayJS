@@ -555,7 +555,7 @@ module.exports = async (client, interaction) => {
         }
 
         // Edit the deferred reply with the actual response
-        await interaction.editReply({ content: 'Playing...' });
+        await interaction.editReply({ content: 'Loading...' });
         setTimeout(() => {
             interaction.deleteReply().catch(console.error);
         }, 2000);
