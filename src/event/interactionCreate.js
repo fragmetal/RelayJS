@@ -7,11 +7,6 @@ module.exports = async (client, interaction) => {
     if (!interaction.isCommand()) return;
 
     try {
-        // Defer the reply if processing might take time
-        if (!interaction.deferred && !interaction.replied) {
-            await interaction.deferReply({ ephemeral: true });
-        }
-
         // Check if the bot is in developer mode
         if (client.devMode === true && interaction.commandName !== 'dev') {
             await interaction.editReply({ content: 'Developer mode is currently active. You cannot use any commands except for /dev.', ephemeral: true });
@@ -89,6 +84,8 @@ module.exports = async (client, interaction) => {
                 }
             }
         } else if (interaction.isButton()) {
+            console.log(`Button interaction received: ${interaction.customId}`); // Log the button ID
+
             // Fetch the tempChannel data once for all cases
             const voiceChannelData = await mongoUtils.fetchVoiceChannelData(interaction.member);
             const voiceChannel = interaction.member.voice.channel; // Get the voice channel the member is in
@@ -100,6 +97,7 @@ module.exports = async (client, interaction) => {
             // Handle button interactions
             switch (interaction.customId) {
                 case 'limit':
+                    console.log('Limit button pressed'); // Log specific button action
                     if (!tempChannel) {
                         if (!interaction.replied) {
                             await interaction.editReply({ content: 'You are not in any temporary voice channel to perform this action.', ephemeral: true });
@@ -201,6 +199,7 @@ module.exports = async (client, interaction) => {
                     }
                     break;
                 case 'privacy':
+                    console.log('Privacy button pressed');
                     if (!interaction.replied) {
                         await interaction.deferReply({ ephemeral: true });
                         if (!voiceChannel) {
@@ -546,6 +545,7 @@ module.exports = async (client, interaction) => {
                     }
                     break;
                 default:
+                    console.log('Unknown button pressed');
                     if (!interaction.replied) { 
                         await interaction.deferReply({ ephemeral: true });
                         await interaction.editReply({ content: 'Unknown action!', ephemeral: true });
