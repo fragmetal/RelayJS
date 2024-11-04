@@ -47,27 +47,35 @@ client.manager.on("nodeConnect", node => {
     client.logger.info(`Node ${node.options.identifier} connected`);
 });
 
+client.manager.on("nodeReconnect", node => {
+    client.logger.info(`Node ${node.options.identifier} is attempting to connect`);
+});
+
+client.manager.on("nodeError", (node, error) => {
+    client.logger.warn(`Node ${node.options.identifier} encountered an error: ${error.message}`)
+});
+
 client.manager.on("trackStart", async (player) => {
     try {
         function format(millis) {
-            try {
-                var h = Math.floor(millis / 3600000),
-                    m = Math.floor(millis / 60000),
-                    s = ((millis % 60000) / 1000).toFixed(0);
-                if (h < 1) return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s + " | " + (Math.floor(millis / 1000)) + " Seconds";
-                else return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s + " | " + (Math.floor(millis / 1000)) + " Seconds";
-            } catch (e) {
-                console.log(String(e.stack).bgRed);
-            }
+            const h = Math.floor(millis / 3600000);
+            const m = Math.floor(millis / 60000) % 60;
+            const s = ((millis % 60000) / 1000).toFixed(0);
+            return h < 1 
+                ? `${m < 10 ? "0" : ""}${m}:${s < 10 ? "0" : ""}${s} | ${Math.floor(millis / 1000)} Seconds`
+                : `${h < 10 ? "0" : ""}${h}:${m < 10 ? "0" : ""}${m}:${s < 10 ? "0" : ""}${s} | ${Math.floor(millis / 1000)} Seconds`;
         }
 
-        function createBar(player) {
-            if (!player.queue.current) return `**"[""🔘""▬".repeat(size - 1)}]**\n**00:00:00 / 00:00:00**`;
-            let current = player.queue.current.duration !== 0 ? player.position : player.queue.current.duration;
-            let total = player.queue.current.duration;
-            let size = 15;
-            let bar = String("| ") + String("🔘").repeat(Math.round(size * (current / total))) + String("▬").repeat(size - Math.round(size * (current / total))) + String(" |");
-            return `**${bar}**\n**${new Date(player.position).toISOString().substr(11, 8) + " / " + (player.queue.current.duration == 0 ? " ◉ LIVE" : new Date(player.queue.current.duration).toISOString().substr(11, 8))}**`;
+        function getQueueList(player) {
+            if (!player.queue || player.queue.size === 0) return 'No more songs in queue.';
+            const queueList = player.queue.map((track, index) => `${index + 1}. [${track.title}](${track.uri})`);
+            const maxLength = 1024;
+            let result = '';
+            for (const item of queueList) {
+                if ((result + item + '\n').length > maxLength) break;
+                result += item + '\n';
+            }
+            return result.trim();
         }
 
         const channel = client.channels.cache.get(player.textChannel);
@@ -80,47 +88,29 @@ client.manager.on("trackStart", async (player) => {
             });
         }
 
-        // Check if there's an existing message to edit
+        const embed = new EmbedBuilder()
+            .setAuthor({ name: `Current song playing:`, iconURL: client.user.displayAvatarURL({ dynamic: true }) })
+            .setThumbnail(`https://img.youtube.com/vi/${player.queue.current.identifier}/mqdefault.jpg`)
+            .setURL(player.queue.current.uri)
+            .setColor(Colors.Green)
+            .setTitle(`🎶 **${player.queue.current.title}** 🎶`)
+            .addFields(
+                { name: `🕰️ Duration: `, value: `\`${format(player.queue.current.duration)}\``, inline: true },
+                { name: `🎼 Song By: `, value: `\`${player.queue.current.author}\``, inline: true },
+                { name: `🔢 Queue length: `, value: `\`${player.queue.length} Songs\``, inline: true },
+                { name: `📜 Upcoming Songs:`, value: getQueueList(player) }
+            )
+            .setFooter({ text: `Requested by: ${player.queue.current.requester.tag}`, iconURL: player.queue.current.requester.displayAvatarURL({ dynamic: true }) });
+
         if (player.nowPlayingMessage) {
             const message = await channel.messages.fetch(player.nowPlayingMessage);
-            return message.edit({
-                embeds: [new EmbedBuilder()
-                    .setAuthor({ name: `Current song playing:`, iconURL: client.user.displayAvatarURL({ dynamic: true }) })
-                    .setThumbnail(`https://img.youtube.com/vi/${player.queue.current.identifier}/mqdefault.jpg`)
-                    .setURL(player.queue.current.uri)
-                    .setColor(Colors.Green)
-                    .setTitle(`🎶 **${player.queue.current.title}** 🎶`)
-                    .addFields(
-                        { name: `🕰️ Duration: `, value: `\`${format(player.queue.current.duration)}\``, inline: true },
-                        { name: `🎼 Song By: `, value: `\`${player.queue.current.author}\``, inline: true },
-                        { name: `🔢 Queue length: `, value: `\`${player.queue.length} Songs\``, inline: true },
-                        { name: `🎛️ Progress: `, value: createBar(player) }
-                    )
-                    .setFooter({ text: `Requested by: ${player.queue.current.requester.tag}`, iconURL: player.queue.current.requester.displayAvatarURL({ dynamic: true }) })
-                ]
-            });
+            return message.edit({ embeds: [embed] });
         } else {
-            // Send a new message and store its ID
-            const sentMessage = await channel.send({
-                embeds: [new EmbedBuilder()
-                    .setAuthor({ name: `Current song playing:`, iconURL: client.user.displayAvatarURL({ dynamic: true }) })
-                    .setThumbnail(`https://img.youtube.com/vi/${player.queue.current.identifier}/mqdefault.jpg`)
-                    .setURL(player.queue.current.uri)
-                    .setColor(Colors.Green)
-                    .setTitle(`🎶 **${player.queue.current.title}** 🎶`)
-                    .addFields(
-                        { name: `🕰️ Duration: `, value: `\`${format(player.queue.current.duration)}\``, inline: true },
-                        { name: `🎼 Song By: `, value: `\`${player.queue.current.author}\``, inline: true },
-                        { name: `🔢 Queue length: `, value: `\`${player.queue.length} Songs\``, inline: true },
-                        { name: `🎛️ Progress: `, value: createBar(player) }
-                    )
-                    .setFooter({ text: `Requested by: ${player.queue.current.requester.tag}`, iconURL: player.queue.current.requester.displayAvatarURL({ dynamic: true }) })
-                ]
-            });
+            const sentMessage = await channel.send({ embeds: [embed] });
             player.nowPlayingMessage = sentMessage.id;
         }
     } catch (e) {
-        console.log(String(e.stack).bgRed);
+        //console.error(e);
         const channel = client.channels.cache.get(player.textChannel);
         return channel.send({
             embeds: [new EmbedBuilder()
@@ -132,11 +122,19 @@ client.manager.on("trackStart", async (player) => {
     }
 });
 
-client.manager.on("queueEnd", player => {
+client.manager.on("queueEnd", async (player) => {
     const channel = client.channels.cache.get(player.textChannel);
     channel.send("Queue has ended.").then(msg => {
         setTimeout(() => msg.delete(), 5000);
     });
+    if (player.nowPlayingMessage) {
+        try {
+            const message = await channel.messages.fetch(player.nowPlayingMessage);
+            if (message) await message.delete();
+        } catch (e) {
+            client.logger.error(`Failed to delete now playing message: ${e.message}`);
+        }
+    }
     player.destroy();
 });
 
@@ -170,5 +168,5 @@ const server = http.createServer((req, res) => {
 
 
 server.listen(443, '0.0.0.0', () => {
-    client.logger.info('Web Server running');
+    //client.logger.info('Web Server running');
 });

@@ -7,8 +7,10 @@ module.exports = async (client, interaction) => {
     if (!interaction.isCommand()) return;
 
     try {
-        // Defer the reply to give more time for processing
-        await interaction.deferReply();
+        // Defer the reply if processing might take time
+        if (!interaction.deferred && !interaction.replied) {
+            await interaction.deferReply({ ephemeral: true });
+        }
 
         // Check if the bot is in developer mode
         if (client.devMode === true && interaction.commandName !== 'dev') {
@@ -553,17 +555,20 @@ module.exports = async (client, interaction) => {
                     }
             }
         }
-
-        // Edit the deferred reply with the actual response
-        await interaction.editReply({ content: 'Loading...' });
-        setTimeout(() => {
-            interaction.deleteReply().catch(console.error);
-        }, 2000);
+        if (!interaction.replied && !interaction.deferred) {
+            await interaction.deferReply({ ephemeral: true });
+        }
+        if (interaction.deferred) {
+            await interaction.editReply({ content: 'Command executed successfully!' });
+            setTimeout(() => {
+                interaction.deleteReply().catch(console.error);
+            }, 1000);
+        }
     } catch (error) {
         console.error('Error handling interaction:', error);
-        if (interaction.deferred || interaction.replied) {
+        if (interaction.deferred) {
             await interaction.editReply({ content: 'An error occurred while processing your request.' });
-        } else {
+        } else if (!interaction.replied) {
             await interaction.reply({ content: 'An error occurred while processing your request.', ephemeral: true });
         }
     }
