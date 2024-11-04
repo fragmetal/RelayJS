@@ -38,10 +38,30 @@ class MongoDBHandler {
         }
         return collection;
     }
+
+    async getBotCredentials(botMode) {
+        try {
+            console.log(`Retrieving credentials for bot mode: ${botMode}`);
+            const collection = await this.getCollection('bot_credentials');
+            if (!collection) {
+                logger.error('Failed to load collection: bot_credentials');
+                return null;
+            }
+            const credentials = await collection.findOne({ _id: botMode });
+            if (!credentials) {
+                logger.error(`No credentials found for bot mode: ${botMode}`);
+                return null;
+            }
+            return credentials;
+        } catch (error) {
+            logger.error('Failed to get bot credentials:', error);
+            return null;
+        }
+    }
 }
 
 module.exports = (client) => {
     const mongodbHandler = new MongoDBHandler();
-    client.mongodb = mongodbHandler; // Attach the handler to the client
-    mongodbHandler.connect(); // Optionally connect immediately or handle connection elsewhere
+    client.mongodb = mongodbHandler;
+    mongodbHandler.connect();
 };

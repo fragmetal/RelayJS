@@ -64,9 +64,9 @@ client.manager = new Manager({
     },
 });
 
-client.manager.on("nodeError", (node, error) => {
-    client.logger.warn(`Node ${node.options.identifier} encountered an error: ${error.message}`)
-});
+// client.manager.on("nodeError", (node, error) => {
+//     client.logger.warn(`Node ${node.options.identifier} encountered an error: ${error.message}`)
+// });
 
 client.manager.on("nodeConnect", node => {
     client.logger.info(`Node ${node.options.identifier} connected`);
@@ -159,10 +159,26 @@ client.manager.on("queueEnd", async (player) => {
     player.destroy();
 });
 
-client.once("ready", () => {
-    client.manager.init(client.user.id);
-});
+(async () => {
+    const botMode = client.config.botMode;
+    const credentials = await client.mongodb.getBotCredentials(botMode);
+
+    if (!credentials) {
+        console.error('Failed to retrieve bot credentials. Exiting...');
+        process.exit(1);
+    }
+
+    const { clientId, token } = credentials;
+    client.once("ready", () => {
+        client.manager.init(clientId);
+    });
+
+    try {
+        await client.login(token);
+        // console.log('Logged in successfully');
+    } catch (error) {
+        console.error('Failed to log in:', error);
+    }
+})();
 
 client.on("raw", d => client.manager.updateVoiceState(d));
-
-client.login(client.config.token);
