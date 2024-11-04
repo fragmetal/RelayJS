@@ -1,4 +1,4 @@
-const { Client, Collection, GatewayIntentBits } = require("discord.js");
+const { Client, Collection, EmbedBuilder, Colors, GatewayIntentBits } = require("discord.js");
 const http = require('http');
 const { Manager } = require("erela.js");
 
@@ -21,13 +21,34 @@ client.logger = require('./src/utils/logger.js');
 client.color = require('./src/utils/color.js');
 // SET CONFIG
 client.config = require('./config.js');
+
 const handlers = ["error", "event", "mongodbHandler", "slashCommands"];
 
 let loadedHandlerCount = 0; // Initialize a counter for loaded handlers
 
-const { EmbedBuilder, Colors } = require('discord.js');
+try {
+    handlers.forEach(handlerName => {
+        const handler = require(`./src/utils/handlers/${handlerName}.js`);
+        handler(client); // Call the function with client
+        loadedHandlerCount++; // Increment the counter for each loaded handler
+    });
+} catch (error) {
+    console.error('Failed to load a handler:', error);
+}
 
-// Assuming `client` is already defined in index.js
+client.logger.loader(`${client.color.chalkcolor.red('[FINISH]')} ${loadedHandlerCount} handlers loaded`);
+// HTTP Server to manage bot actions
+const server = http.createServer((req, res) => {
+    if (req.url === '/') {
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end('Welcome to the bot management server.');
+    }
+});
+
+server.listen(443, '0.0.0.0', () => {
+    //client.logger.info('Web Server running');
+});
+
 client.manager = new Manager({
     nodes: [
         {
@@ -43,16 +64,16 @@ client.manager = new Manager({
     },
 });
 
+client.manager.on("nodeError", (node, error) => {
+    client.logger.warn(`Node ${node.options.identifier} encountered an error: ${error.message}`)
+});
+
 client.manager.on("nodeConnect", node => {
     client.logger.info(`Node ${node.options.identifier} connected`);
 });
 
 client.manager.on("nodeReconnect", node => {
     client.logger.info(`Node ${node.options.identifier} is attempting to connect`);
-});
-
-client.manager.on("nodeError", (node, error) => {
-    client.logger.warn(`Node ${node.options.identifier} encountered an error: ${error.message}`)
 });
 
 client.manager.on("trackStart", async (player) => {
@@ -144,29 +165,4 @@ client.once("ready", () => {
 
 client.on("raw", d => client.manager.updateVoiceState(d));
 
-try {
-    handlers.forEach(handlerName => {
-        const handler = require(`./src/utils/handlers/${handlerName}.js`);
-        handler(client); // Call the function with client
-        loadedHandlerCount++; // Increment the counter for each loaded handler
-    });
-} catch (error) {
-    console.error('Failed to load a handler:', error);
-}
-
-client.logger.loader(`${client.color.chalkcolor.red('[FINISH]')} ${loadedHandlerCount} handlers loaded`);
-
 client.login(client.config.token);
-
-// HTTP Server to manage bot actions
-const server = http.createServer((req, res) => {
-    if (req.url === '/') {
-        res.writeHead(200, { 'Content-Type': 'text/plain' });
-        res.end('Welcome to the bot management server.');
-    }
-});
-
-
-server.listen(443, '0.0.0.0', () => {
-    //client.logger.info('Web Server running');
-});
