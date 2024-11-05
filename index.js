@@ -1,7 +1,5 @@
 const { Client, Collection, GatewayIntentBits } = require("discord.js");
 const http = require('http');
-const { spawn } = require('child_process');
-const path = require('path');
 const { LavalinkManager } = require('lavalink-client');
 
 const client = new Client({
