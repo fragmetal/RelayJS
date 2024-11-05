@@ -14,11 +14,10 @@ module.exports = async (client) => {
 
                 // Directly bind the event function to the client
                 client.on(eventName, event.bind(null, client));
+                client.logger.loader(`${client.color.chalkcolor.red('[EVENT]')} ${file} event loaded`);
             } catch (error) {
                 client.logger.error(`Failed to load event file ${file}: ${error.message}`);
             }
         });
-
-        client.logger.loader(`${client.color.chalkcolor.red('[FINISH]')} ${files.length} events loaded`);
     });
 }

@@ -57,8 +57,12 @@ module.exports = {
             const deletedMessages = await interaction.channel.bulkDelete(messages, true);
             await interaction.editReply({ content: `Cleared ${deletedMessages.size} messages.` });
         } catch (error) {
-            console.error('Failed to delete messages:', error);
-            await interaction.editReply({ content: 'Failed to clear messages. Make sure I have the proper permissions and the messages are not older than 14 days.' });
+            if (error.code === 50013) {
+                await interaction.editReply({ content: 'Failed to clear messages. Missing permissions to delete messages.' });
+            } else {
+                console.error('Failed to delete messages:', error);
+                await interaction.editReply({ content: 'Failed to clear messages. Make sure I have the proper permissions and the messages are not older than 14 days.' });
+            }
         }
     }
 };
