@@ -1,5 +1,4 @@
 const { Client, Collection, GatewayIntentBits } = require("discord.js");
-const http = require('http');
 const { LavalinkManager } = require('lavalink-client');
 
 const client = new Client({
@@ -94,14 +93,5 @@ try {
 }
 
 client.logger.loader(`${client.color.chalkcolor.red('[FINISH]')} ${loadedHandlerCount} handlers loaded`);
-// HTTP Server to manage bot actions
-const server = http.createServer((req, res) => {
-    if (req.url === '/') {
-        res.writeHead(200, { 'Content-Type': 'text/plain' });
-        res.end('Welcome to the bot management server.');
-    }
-});
-
-server.listen(80, '0.0.0.0', () => {});
 
 StartBot();

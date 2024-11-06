@@ -1,4 +1,4 @@
 node_modules
 .codesandbox
-lavalink/logs/*
+logs
 slash.js
