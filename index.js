@@ -51,29 +51,47 @@ async function StartBot() {
     });
 
     client.once('ready', async () => {
-        client.lavalink.init(client.user); // init lavalink
-    });
-    
-    client.lavalink.on("create", (node, payload) => {
-        console.log(`The Lavalink Node #${node.id} connected`);
+        await client.lavalink.init(client.user.id, "auto");
     });
 
-    // for all node based errors:
-    client.lavalink.on("error", (node, error, payload) => {
-        console.error(`The Lavalink Node #${node.id} errored: `, error);
-        console.error(`Error-Payload: `, payload)
-    });
+    /**
+     * Node Events
+     * Handles various events emitted by the Lavalink node manager.
+     */
+    client.lavalink.nodeManager
+        .on("raw", (node, payload) => {
+            // Handle raw events if needed
+            // console.log(`${node.id} :: RAW ::`, payload);
+        })
+        .on("disconnect", (node, reason) => {
+            console.log(`[LAVALINK] ${node.id} :: Disconnected ::`, reason);
+        })
+        .on("connect", (node) => {
+            console.log(`[LAVALINK] ${node.id} :: Connected ::`);
+            // Uncomment the line below to test music playback once connected
+            // testPlay(client);
+        })
+        .on("reconnecting", (node) => {
+            console.log(`[LAVALINK] ${node.id} :: Reconnecting ::`);
+        })
+        .on("create", (node) => {
+            console.log(`[LAVALINK] ${node.id} :: Created ::`);
+        })
+        .on("destroy", (node) => {
+            console.log(`[LAVALINK] ${node.id} :: Destroyed ::`);
+        })
+        .on("error", (node, error, payload) => {
+            console.log(`[LAVALINK] ${node.id} :: Error ::`, error, ":: Payload ::", payload);
+        })
+        .on("resumed", (node, payload, players) => {
+            // Handle resumed events if needed
+            // console.log(`${node.id} :: Resumed ::`, Array.isArray(players) ? players.length : players, "players still playing :: Payload ::", payload);
+        });
     
-    client.lavalink.nodeManager.on("create", (node, payload) => {
-        console.log(`The Lavalink Node #${node.id} connected`);
+    client.on("raw", d => {
+       // console.log('Raw event data:', d);
+        client.lavalink.sendRawData(d);
     });
-    
-    client.lavalink.nodeManager.on("error", (node, error, payload) => {
-        console.error(`The Lavalink Node #${node.id} errored: `, error);
-        console.error(`Error-Payload: `, payload);
-    });
-    
-    client.on("raw", d => client.lavalink.sendRawData(d)); // send raw data to lavalink-client to handle stuff
 
     await client.login(token);
 }

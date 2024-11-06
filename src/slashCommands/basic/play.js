@@ -51,8 +51,7 @@ module.exports = {
             name: 'query',
             description: "What to play?",
             type: 3, // String type
-            required: true,
-            autocomplete: true
+            required: true
         }
     ],
 
@@ -96,7 +95,7 @@ module.exports = {
             ? await player.search({ query: query, source: getSourceFromUrl(query) }, interaction.user)
             : (fromAutoComplete || await player.search({ query: query, source: src }, interaction.user));
 
-        if (!response || !response.tracks?.length) return interaction.followUp({ content: `No Tracks found`, ephemeral: true });
+        if (!response || !response.tracks?.length) return interaction.reply({ content: `No Tracks found`, ephemeral: true });
 
         await player.queue.add(response.loadType === "playlist" ? response.tracks : response.tracks[fromAutoComplete ? Number(query.replace("autocomplete_", "")) : 0]);
 
@@ -107,39 +106,5 @@ module.exports = {
         });
 
         if (!player.playing) await player.play(player.connected ? { volume: client.defaultVolume, paused: false } : undefined);
-    },
-
-    autocomplete: async (client, interaction) => {
-        if (!interaction.guildId) return;
-        const vcId = (interaction.member instanceof GuildMember) ? interaction.member.voice.channelId : null;
-        if (!vcId) return interaction.respond([{ name: `Join a voice Channel`, value: "join_vc" }]);
-
-        const focussedQuery = interaction.options.getFocused();
-        const player = client.lavalink.getPlayer(interaction.guildId) || await client.lavalink.createPlayer({
-            guildId: interaction.guildId, voiceChannelId: vcId, textChannelId: interaction.channelId,
-            selfDeaf: true, selfMute: false, volume: client.defaultVolume, instaUpdateFiltersFix: true
-        });
-
-        if (!player.connected) await player.connect();
-
-        if (player.voiceChannelId !== vcId) return interaction.respond([{ name: `You need to be in my Voice Channel`, value: "join_vc" }]);
-
-        if (!focussedQuery.trim().length) return await interaction.respond([{ name: `No Tracks found (enter a query)`, value: "nothing_found" }]);
-
-        const res = await player.search({ query: focussedQuery, source: interaction.options.getString("source") }, interaction.user);
-
-        if (!res.tracks.length) return await interaction.respond([{ name: `No Tracks found`, value: "nothing_found" }]);
-
-        if (autocompleteMap.has(`${interaction.user.id}_timeout`)) clearTimeout(autocompleteMap.get(`${interaction.user.id}_timeout`));
-        autocompleteMap.set(`${interaction.user.id}_res`, res);
-        autocompleteMap.set(`${interaction.user.id}_timeout`, setTimeout(() => {
-            autocompleteMap.delete(`${interaction.user.id}_res`);
-            autocompleteMap.delete(`${interaction.user.id}_timeout`);
-        }, 25000));
-        await interaction.respond(
-            res.loadType === "playlist" ?
-            [{ name: `Playlist [${res.tracks.length} Tracks] - ${res.playlist?.title}`, value: `autocomplete_0`}]
-            : res.tracks.map((t, i) => ({ name: `[${formatMS_HHMMSS(t.info.duration)}] ${t.info.title} (by ${t.info.author || "Unknown-Author"})`.substring(0, 100), value: `autocomplete_${i}` })).slice(0, 25)
-        );
     }
 };

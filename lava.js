@@ -121,7 +121,7 @@ function startLavalink(javaExecutable) {
     ]);
 
     lavalinkProcess.stdout.on('data', (data) => {
-        console.log(`${data}`);
+        //console.log(`${data}`);
         if (data.includes('Lavalink is ready to accept connections.')) {
             logger.info(`Starting bot...`);
             const botProcess = exec('node index.js');
