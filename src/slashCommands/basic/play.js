@@ -96,7 +96,7 @@ module.exports = {
             ? await player.search({ query: query, source: getSourceFromUrl(query) }, interaction.user)
             : (fromAutoComplete || await player.search({ query: query, source: src }, interaction.user));
 
-        if (!response || !response.tracks?.length) return interaction.reply({ content: `No Tracks found`, ephemeral: true });
+        if (!response || !response.tracks?.length) return interaction.followUp({ content: `No Tracks found`, ephemeral: true });
 
         await player.queue.add(response.loadType === "playlist" ? response.tracks : response.tracks[fromAutoComplete ? Number(query.replace("autocomplete_", "")) : 0]);
 
