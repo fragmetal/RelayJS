@@ -58,16 +58,18 @@ module.exports = {
     run: async (client, interaction) => {
         if (!interaction.guildId) return;
 
+        await interaction.deferReply({ ephemeral: true });
+
         const vcId = (interaction.member instanceof GuildMember) ? interaction.member.voice.channelId : null;
-        if (!vcId) return interaction.reply({ ephemeral: true, content: `Join a voice Channel` });
+        if (!vcId) return interaction.followUp({ content: `Join a voice Channel` });
 
         const vc = (interaction.member instanceof GuildMember) ? interaction.member.voice.channel : null;
-        if (!vc || !vc.joinable || !vc.speakable) return interaction.reply({ ephemeral: true, content: "I am not able to join your channel / speak in there." });
+        if (!vc || !vc.joinable || !vc.speakable) return interaction.followUp({ content: "I am not able to join your channel / speak in there." });
 
         const src = (interaction.options instanceof CommandInteractionOptionResolver) ? interaction.options.getString("source") : undefined;
         const query = (interaction.options instanceof CommandInteractionOptionResolver) ? interaction.options.getString("query") : "";
 
-        if (!src || !query) return interaction.reply({ content: `Invalid source or query`, ephemeral: true });
+        if (!src || !query) return interaction.followUp({ content: `Invalid source or query` });
 
         const fromAutoComplete = (Number(query.replace("autocomplete_", "")) >= 0 && autocompleteMap.has(`${interaction.user.id}_res`)) && autocompleteMap.get(`${interaction.user.id}_res`);
         if (autocompleteMap.has(`${interaction.user.id}_res`)) {
@@ -89,17 +91,17 @@ module.exports = {
 
         if (!player.connected) await player.connect();
 
-        if (player.voiceChannelId !== vcId) return interaction.reply({ ephemeral: true, content: "You need to be in my Voice Channel" });
+        if (player.voiceChannelId !== vcId) return interaction.followUp({ content: "You need to be in my Voice Channel" });
 
         const response = isUrl(query)
             ? await player.search({ query: query, source: getSourceFromUrl(query) }, interaction.user)
             : (fromAutoComplete || await player.search({ query: query, source: src }, interaction.user));
 
-        if (!response || !response.tracks?.length) return interaction.reply({ content: `No Tracks found`, ephemeral: true });
+        if (!response || !response.tracks?.length) return interaction.followUp({ content: `No Tracks found` });
 
         await player.queue.add(response.loadType === "playlist" ? response.tracks : response.tracks[fromAutoComplete ? Number(query.replace("autocomplete_", "")) : 0]);
 
-        await interaction.reply({
+        await interaction.followUp({
             content: response.loadType === "playlist"
                 ? `✅ Added [${response.tracks.length}] Tracks${response.playlist?.title ? ` - from the ${response.pluginInfo.type || "Playlist"} ${response.playlist.uri ? `[\`${response.playlist.title}\`](<${response.playlist.uri}>)` : `\`${response.playlist.title}\``}` : ""} at \`#${player.queue.tracks.length-response.tracks.length}\``
                 : `✅ Added [\`${response.tracks[0].info.title}\`](<${response.tracks[0].info.uri}>) by \`${response.tracks[0].info.author}\` at \`#${player.queue.tracks.length}\``
