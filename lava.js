@@ -3,7 +3,8 @@ const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const https = require('https');
-
+// SET UTILS
+logger = require('./src/utils/logger.js');
 // Function to download a file using HTTPS
 function downloadFile(url, dest, cb) {
     const file = fs.createWriteStream(dest);
@@ -122,15 +123,23 @@ function startLavalink(javaExecutable) {
     ]);
 
     lavalinkProcess.stdout.on('data', (data) => {
-        console.log(`${data}`);
         if (data.includes('Lavalink is ready to accept connections.')) {
-            exec('node index.js', (error, stdout, stderr) => {
-                if (error) {
-                    console.error(`Error starting node index.js: ${error}`);
-                    return;
-                }
-                console.log(`stdout: ${stdout}`);
-                console.error(`stderr: ${stderr}`);
+            const botProcess = exec('node index.js');
+
+            botProcess.stdout.on('data', (botData) => {
+                logger.info(`${botData}`);
+            });
+
+            botProcess.stderr.on('data', (botError) => {
+                console.error(`Bot stderr: ${botError}`);
+            });
+
+            botProcess.on('close', (code) => {
+                console.log(`Bot process exited with code ${code}`);
+            });
+
+            botProcess.on('error', (err) => {
+                console.error('Failed to start bot process:', err);
             });
         }
     });

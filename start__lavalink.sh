@@ -1,7 +1,0 @@
-#!/bin/bash
-
-JAVA_EXECUTABLE=$1
-LAVALINK_JAR_PATH=$2
-CONFIG_PATH=$3
-
-$JAVA_EXECUTABLE -jar $LAVALINK_JAR_PATH --spring.config.location=$CONFIG_PATH
