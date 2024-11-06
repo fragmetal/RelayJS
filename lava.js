@@ -72,8 +72,6 @@ if (fs.existsSync(javaPath)) {
                             console.error('Failed to delete tar.gz file:', unlinkError);
                             return;
                         }
-
-                        console.log('tar.gz file deleted successfully.');
                         makeJavaExecutable(javaPath);
                     });
                 });
@@ -123,11 +121,13 @@ function startLavalink(javaExecutable) {
     ]);
 
     lavalinkProcess.stdout.on('data', (data) => {
+        console.log(`${data}`);
         if (data.includes('Lavalink is ready to accept connections.')) {
+            logger.info(`Starting bot...`);
             const botProcess = exec('node index.js');
 
             botProcess.stdout.on('data', (botData) => {
-                logger.info(`${botData}`);
+                console.log(`${botData}`);
             });
 
             botProcess.stderr.on('data', (botError) => {
