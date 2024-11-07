@@ -88,32 +88,34 @@ async function StartBot() {
     client.lavalink.nodeManager
         .on("raw", (node, payload) => {
             // Handle raw events if needed
-            // client.logger.loader(`${client.color.chalkcolor.red('[RAW]')} ${node.id} :: RAW :: ${JSON.stringify(payload)}`);
+            // client.logger.info(`${client.color.chalkcolor.red('[RAW]')} ${node.id} :: RAW :: ${JSON.stringify(payload)}`);
         })
         .on("disconnect", (node, reason) => {
             //client.logger.loader(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Disconnected :: ${reason}`);
-            client.logger.loader(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Disconnected ::`);
+            client.logger.info(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Disconnected ::`);
         })
         .on("connect", (node) => {
-            client.logger.loader(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Connected ::`);
+            client.logger.info(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Connected ::`);
             // Uncomment the line below to test music playback once connected
             // testPlay(client);
         })
         .on("reconnecting", (node) => {
-            client.logger.loader(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Reconnecting ::`);
+            client.logger.info(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Reconnecting ::`);
         })
         .on("create", (node) => {
-            client.logger.loader(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Created ::`);
+            client.logger.info(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Created ::`);
         })
         .on("destroy", (node) => {
-            client.logger.loader(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Destroyed ::`);
+            client.logger.info(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Destroyed ::`);
         })
         .on("error", (node, error, payload) => {
-            client.logger.loader(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Error :: ${error} :: Payload :: ${JSON.stringify(payload)}`);
+            //client.logger.loader(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Error :: ${error} :: Payload :: ${JSON.stringify(payload)}`);
+            client.logger.info(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Error ::`);
         })
         .on("resumed", (node, payload, players) => {
             // Handle resumed events if needed
             // client.logger.loader(`${client.color.chalkcolor.red('[RESUMED]')} ${node.id} :: Resumed :: ${Array.isArray(players) ? players.length : players} players still playing :: Payload :: ${JSON.stringify(payload)}`);
+            client.logger.info(`${client.color.chalkcolor.red('[RESUMED]')} ${node.id} :: Resumed ::`);
         });
     
     client.on("raw", d => {
