@@ -2,9 +2,9 @@
   "name": "relayjs",
   "version": "2.0.0",
   "description": "",
-  "main": "lava.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node lava.js",
+    "start": "node index.js",
     "slash": "node slash.js"
   },
   "keywords": [],
