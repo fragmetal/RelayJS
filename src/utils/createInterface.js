@@ -2,7 +2,7 @@ const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('
 
 const createInterface = async (channel) => {
     // Check if the channel is valid
-    if (!channel.isTextBased()) { // Updated method to check if the channel is text-based
+    if (!channel.isTextBased()) {
         throw new Error('Channel is not a text-based channel');
     }
 
@@ -36,8 +36,20 @@ const createInterface = async (channel) => {
     const messages = await channel.messages.fetch({ limit: 1 });
     const botMessage = messages.find(msg => msg.author.id === channel.client.user.id);
 
-    // Delete the previous bot message if it exists
+    // Check if the existing message is identical
     if (botMessage) {
+        const isIdentical = botMessage.embeds.length > 0 &&
+            botMessage.embeds[0].description === embed.data.description &&
+            botMessage.components.length === 2 &&
+            botMessage.components[0].components.length === row1.components.length &&
+            botMessage.components[1].components.length === row2.components.length;
+
+        if (isIdentical) {
+            //console.log('Identical message found, no need to send a new one.');
+            return;
+        }
+
+        // Delete the previous bot message if it is not identical
         await botMessage.delete();
     }
 

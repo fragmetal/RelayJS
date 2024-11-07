@@ -32,8 +32,8 @@ async function StartBot() {
         process.exit(1);
     }
     const { clientId, token } = credentials;
-
-    const retrievedNodeInfo = await client.mongodb.getLavalinkNodeInfo("prodnode");
+    const botNode = client.config.botNode;
+    const retrievedNodeInfo = await client.mongodb.getLavalinkNodeInfo(botNode);
     // Use retrieved information if it exists, otherwise fall back to default
     const nodeConfig = retrievedNodeInfo || {
         authorization: "BatuManaBisa",
