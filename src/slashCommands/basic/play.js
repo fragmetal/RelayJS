@@ -60,6 +60,11 @@ module.exports = {
 
         await interaction.deferReply({ ephemeral: true });
 
+        const node = client.lavalink.nodes.first(); // Access the first node
+        if (!node || !node.connected) {
+            return interaction.followUp({ content: "Lavalink node is not connected. Please try again later." });
+        }
+
         const vcId = (interaction.member instanceof GuildMember) ? interaction.member.voice.channelId : null;
         if (!vcId) return interaction.followUp({ content: `Join a voice Channel` });
 

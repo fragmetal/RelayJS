@@ -18,15 +18,13 @@ module.exports = async (client) => {
         }
         const minutes = Math.floor((uptime % (60 * 60)) / 60);
         uptimeString += `${minutes} m`;
-
-        client.logger.info(`[!] The bot has ${client.slash.size} (/) commands`);
-        client.logger.info(`[!] ${client.user.username} is now started...`);
         client.user.setActivity('customstatus', { type: ActivityType.Custom, state: '🛠️ USE / [ Uptime: ' + uptimeString + ' ]' });
     };
 
     updateUptime();
     setInterval(updateUptime, 60 * 1000); // Update every 1 minute
-
+    client.logger.info(`[!] The bot has ${client.slash.size} (/) commands`);
+    client.logger.info(`[!] ${client.user.username} is now started...`);
     const guilds = client.guilds.cache; // Get all guilds the bot is in
     if (guilds.size === 0) {
         console.error('No guilds found.'); // Handle the case where there are no guilds

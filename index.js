@@ -92,7 +92,7 @@ async function StartBot() {
         })
         .on("disconnect", (node, reason) => {
             //client.logger.loader(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Disconnected :: ${reason}`);
-            client.logger.info(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Disconnected ::`);
+            //client.logger.info(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Disconnected ::`);
         })
         .on("connect", (node) => {
             client.logger.info(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Connected ::`);
@@ -109,12 +109,12 @@ async function StartBot() {
             client.logger.info(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Destroyed ::`);
         })
         .on("error", (node, error, payload) => {
-            //client.logger.loader(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Error :: ${error} :: Payload :: ${JSON.stringify(payload)}`);
-            client.logger.info(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Error ::`);
+            client.logger.info(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Error :: ${error} :: Payload :: ${JSON.stringify(payload)}`);
+            // client.logger.info(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Error ::`);
         })
         .on("resumed", (node, payload, players) => {
             // Handle resumed events if needed
-            // client.logger.loader(`${client.color.chalkcolor.red('[RESUMED]')} ${node.id} :: Resumed :: ${Array.isArray(players) ? players.length : players} players still playing :: Payload :: ${JSON.stringify(payload)}`);
+            // client.logger.info(`${client.color.chalkcolor.red('[RESUMED]')} ${node.id} :: Resumed :: ${Array.isArray(players) ? players.length : players} players still playing :: Payload :: ${JSON.stringify(payload)}`);
             client.logger.info(`${client.color.chalkcolor.red('[RESUMED]')} ${node.id} :: Resumed ::`);
         });
     
