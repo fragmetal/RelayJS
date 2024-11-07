@@ -1,6 +1,6 @@
 const { Client, Collection, GatewayIntentBits } = require("discord.js");
 const { LavalinkManager } = require('lavalink-client');
-const http = require('http');
+
 const client = new Client({
     allowedMentions: { parse: ['users', 'roles'] },
     fetchAllMembers: false,
@@ -91,7 +91,8 @@ async function StartBot() {
             // client.logger.loader(`${client.color.chalkcolor.red('[RAW]')} ${node.id} :: RAW :: ${JSON.stringify(payload)}`);
         })
         .on("disconnect", (node, reason) => {
-            client.logger.loader(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Disconnected :: ${reason}`);
+            //client.logger.loader(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Disconnected :: ${reason}`);
+            client.logger.loader(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Disconnected ::`);
         })
         .on("connect", (node) => {
             client.logger.loader(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Connected ::`);
@@ -121,10 +122,6 @@ async function StartBot() {
     });
 
     await client.login(token);
-    // Make the server listen on the specified port
-    server.listen(80, () => {
-        client.logger.loader(`${client.color.chalkcolor.red('[SERVER]')} Server running at http://localhost:80/`);
-    });
 }
 
 const handlers = ["error", "event", "mongodbHandler", "slashCommands"];
@@ -142,14 +139,5 @@ try {
 }
 
 client.logger.loader(`${client.color.chalkcolor.red('[FINISH]')} ${loadedHandlerCount} handlers loaded`);
-
-// Create the server
-const server = http.createServer((req, res) => {
-    // Set the response HTTP header with HTTP status and Content type
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    
-    // Send the response body "Application Online"
-    res.end('Application Online\n');
-});
 
 StartBot();

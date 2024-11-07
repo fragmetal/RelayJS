@@ -1,6 +1,7 @@
 const { ActivityType } = require('discord.js'); // Ensure correct imports
 const MongoUtilities = require('../utils/db'); // Import the class directly
 const createInterface = require('../utils/createInterface'); // Import the function
+const http = require('http');
 
 module.exports = async (client) => {
     const mongoUtils = new MongoUtilities(client); // Create an instance of MongoUtilities
@@ -30,4 +31,26 @@ module.exports = async (client) => {
             }
         }
     }
+    // Create the server
+    const serverStartTime = Date.now(); // Record the server start time
+
+    const server = http.createServer((req, res) => {
+        // Calculate the uptime
+        const uptime = Date.now() - serverStartTime;
+        const seconds = Math.floor((uptime / 1000) % 60);
+        const minutes = Math.floor((uptime / (1000 * 60)) % 60);
+        const hours = Math.floor((uptime / (1000 * 60 * 60)) % 24);
+        const days = Math.floor(uptime / (1000 * 60 * 60 * 24));
+
+        // Set the response HTTP header with HTTP status and Content type
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        
+        // Send the response body with uptime information
+        res.end(`Application Online\nUptime: ${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds\n`);
+    });
+
+    // Make the server listen on the specified port
+    server.listen(80, () => {
+        client.logger.info(`${client.color.chalkcolor.red('[SERVER]')} Server running at http://localhost:80/`);
+    });
 };
