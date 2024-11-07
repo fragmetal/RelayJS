@@ -33,22 +33,49 @@ async function StartBot() {
     }
     const { clientId, token } = credentials;
 
-    // create instance
+    const retrievedNodeInfo = await client.mongodb.getLavalinkNodeInfo("prodnode");
+    // Use retrieved information if it exists, otherwise fall back to default
+    const nodeConfig = retrievedNodeInfo || {
+        authorization: "BatuManaBisa",
+        host: "lavalink.serenetia.com",
+        port: 443,
+        secure: true,
+        _id: "prodnode",
+    };
+
+    // If node information does not exist, save the default configuration
+    if (!retrievedNodeInfo) {
+        const saveResult = await client.mongodb.saveLavalinkNodeInfo(nodeConfig);
+        const localNodeConfig = {
+            authorization: "youshallnotpass",
+            host: "localhost",
+            port: 2333,
+            secure: false,
+            _id: "localnode",
+        };
+        const saveLocalResult = await client.mongodb.saveLavalinkNodeInfo(localNodeConfig);
+        if (saveResult || saveLocalResult) {
+            //console.log("Default Lavalink node information saved to MongoDB.");
+        } else {
+            //console.error("Failed to save default Lavalink node information.");
+        }
+    }
+
+    // Create Lavalink instance with the node configuration
     client.lavalink = new LavalinkManager({
-        nodes: [
-            {
-                authorization: "youshallnotpass",
-                host: "localhost",
-                port: 2333,
-                id: "prodnode",
-            }
-        ],
+        nodes: [nodeConfig],
         sendToShard: (guildId, payload) => client.guilds.cache.get(guildId)?.shard?.send(payload),
         autoSkip: true,
         client: {
             id: clientId,
         },
     });
+
+    // if (retrievedNodeInfo) {
+        //console.log("Loaded Lavalink node information from MongoDB:", retrievedNodeInfo);
+    // } else {
+        //console.log("Using default Lavalink node configuration.");
+    // }
 
     client.once('ready', async () => {
         await client.lavalink.init(client.user.id, "auto");
@@ -61,31 +88,31 @@ async function StartBot() {
     client.lavalink.nodeManager
         .on("raw", (node, payload) => {
             // Handle raw events if needed
-            // console.log(`${node.id} :: RAW ::`, payload);
+            // client.logger.loader(`${client.color.chalkcolor.red('[RAW]')} ${node.id} :: RAW :: ${JSON.stringify(payload)}`);
         })
         .on("disconnect", (node, reason) => {
-            console.log(`[LAVALINK] ${node.id} :: Disconnected ::`, reason);
+            client.logger.loader(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Disconnected :: ${reason}`);
         })
         .on("connect", (node) => {
-            console.log(`[LAVALINK] ${node.id} :: Connected ::`);
+            client.logger.loader(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Connected ::`);
             // Uncomment the line below to test music playback once connected
             // testPlay(client);
         })
         .on("reconnecting", (node) => {
-            console.log(`[LAVALINK] ${node.id} :: Reconnecting ::`);
+            client.logger.loader(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Reconnecting ::`);
         })
         .on("create", (node) => {
-            console.log(`[LAVALINK] ${node.id} :: Created ::`);
+            client.logger.loader(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Created ::`);
         })
         .on("destroy", (node) => {
-            console.log(`[LAVALINK] ${node.id} :: Destroyed ::`);
+            client.logger.loader(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Destroyed ::`);
         })
         .on("error", (node, error, payload) => {
-            console.log(`[LAVALINK] ${node.id} :: Error ::`, error, ":: Payload ::", payload);
+            client.logger.loader(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Error :: ${error} :: Payload :: ${JSON.stringify(payload)}`);
         })
         .on("resumed", (node, payload, players) => {
             // Handle resumed events if needed
-            // console.log(`${node.id} :: Resumed ::`, Array.isArray(players) ? players.length : players, "players still playing :: Payload ::", payload);
+            // client.logger.loader(`${client.color.chalkcolor.red('[RESUMED]')} ${node.id} :: Resumed :: ${Array.isArray(players) ? players.length : players} players still playing :: Payload :: ${JSON.stringify(payload)}`);
         });
     
     client.on("raw", d => {

@@ -121,27 +121,27 @@ function startLavalink(javaExecutable) {
     ]);
 
     lavalinkProcess.stdout.on('data', (data) => {
-        //console.log(`${data}`);
-        if (data.includes('Lavalink is ready to accept connections.')) {
-            logger.info(`Starting bot...`);
-            const botProcess = exec('node index.js');
+        console.log(`${data}`);
+        // if (data.includes('Lavalink is ready to accept connections.')) {
+        //     logger.info(`Starting bot...`);
+        //     const botProcess = exec('node index.js');
 
-            botProcess.stdout.on('data', (botData) => {
-                console.log(`${botData}`);
-            });
+        //     botProcess.stdout.on('data', (botData) => {
+        //         console.log(`${botData}`);
+        //     });
 
-            botProcess.stderr.on('data', (botError) => {
-                console.error(`Bot stderr: ${botError}`);
-            });
+        //     botProcess.stderr.on('data', (botError) => {
+        //         console.error(`Bot stderr: ${botError}`);
+        //     });
 
-            botProcess.on('close', (code) => {
-                console.log(`Bot process exited with code ${code}`);
-            });
+        //     botProcess.on('close', (code) => {
+        //         console.log(`Bot process exited with code ${code}`);
+        //     });
 
-            botProcess.on('error', (err) => {
-                console.error('Failed to start bot process:', err);
-            });
-        }
+        //     botProcess.on('error', (err) => {
+        //         console.error('Failed to start bot process:', err);
+        //     });
+        // }
     });
 
     lavalinkProcess.stderr.on('data', (data) => {

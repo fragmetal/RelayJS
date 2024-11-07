@@ -57,6 +57,41 @@ class MongoDBHandler {
       return null;
     }
   }
+
+  async saveLavalinkNodeInfo(nodeInfo) {
+    try {
+      const collection = await this.getCollection("lavalink_nodes");
+      if (!collection) {
+        logger.error("Failed to load collection: lavalink_nodes");
+        return false;
+      }
+      await collection.insertOne(nodeInfo);
+      logger.database("Lavalink node information saved successfully.");
+      return true;
+    } catch (error) {
+      logger.error("Failed to save Lavalink node information:", error);
+      return false;
+    }
+  }
+
+  async getLavalinkNodeInfo(nodeId) {
+    try {
+      const collection = await this.getCollection("lavalink_nodes");
+      if (!collection) {
+        logger.error("Failed to load collection: lavalink_nodes");
+        return null;
+      }
+      const nodeInfo = await collection.findOne({ _id: nodeId });
+      if (!nodeInfo) {
+        logger.error(`No Lavalink node information found for node ID: ${nodeId}`);
+        return null;
+      }
+      return nodeInfo;
+    } catch (error) {
+      logger.error("Failed to get Lavalink node information:", error);
+      return null;
+    }
+  }
 }
 
 module.exports = (client) => {
