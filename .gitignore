@@ -1,5 +1,6 @@
 node_modules
+discloud.config
 .codesandbox
 logs
 slash.js
-discloud.config
+.cache
