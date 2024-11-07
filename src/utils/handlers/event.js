@@ -7,6 +7,8 @@ module.exports = async (client) => {
             return; // Exit if there's an error reading the directory
         }
 
+        let eventCount = 0; // Initialize a counter for loaded events
+
         files.forEach(file => {
             try {
                 const event = require(`${__dirname}/../../event/${file}`);
@@ -14,10 +16,11 @@ module.exports = async (client) => {
 
                 // Directly bind the event function to the client
                 client.on(eventName, event.bind(null, client));
-                client.logger.loader(`${client.color.chalkcolor.red('[EVENT]')} ${file} event loaded`);
+                eventCount++; // Increment the counter for each loaded event
             } catch (error) {
                 client.logger.error(`Failed to load event file ${file}: ${error.message}`);
             }
         });
+        client.logger.loader(`${client.color.chalkcolor.red('[EVENT]')} ${eventCount} events loaded`);
     });
 }
