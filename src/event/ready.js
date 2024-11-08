@@ -196,18 +196,21 @@ module.exports = async (client) => {
         if(track?.info?.uri && /^https?:\/\//.test(track?.info?.uri)) embeds[0].setURL(track.info.uri)
 
         const channel = client.channels.cache.get(player.textChannelId);
-        if (channel && player.currentTrackMessageId) {
+        if (channel) {
             try {
-                const message = await channel.messages.fetch(player.currentTrackMessageId);
+                let message;
+                if (player.currentTrackMessageId) {
+                    message = await channel.messages.fetch(player.currentTrackMessageId).catch(() => null);
+                }
                 if (message && message.editable) {
                     await message.edit({ embeds });
+                } else {
+                    message = await sendPlayerMessage(client, player, { embeds });
+                    player.currentTrackMessageId = message.id; // Store the message ID
                 }
             } catch (error) {
-                console.error("Failed to edit message:", error);
+                console.error("Failed to handle track start message:", error);
             }
-        } else {
-            const message = await sendPlayerMessage(client, player, { embeds });
-            player.currentTrackMessageId = message.id; // Store the message ID
         }
     })
     .on("trackEnd", async (player, track, payload) => {
