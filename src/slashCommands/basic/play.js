@@ -24,12 +24,14 @@ module.exports = {
         const vcId = interaction.member instanceof GuildMember ? interaction.member.voice.channelId : null;
         if (!vcId) {
             await interaction.reply({ ephemeral: true, content: `Join a voice Channel` });
+            setTimeout(() => interaction.deleteReply().catch(console.error), 5000);
             return;
         }
 
         const vc = interaction.member instanceof GuildMember ? interaction.member.voice.channel : null;
         if (!vc.joinable || !vc.speakable) {
             await interaction.reply({ ephemeral: true, content: "I am not able to join your channel / speak in there." });
+            setTimeout(() => interaction.deleteReply().catch(console.error), 5000);
             return;
         }
 
@@ -74,6 +76,7 @@ module.exports = {
 
         if (player.voiceChannelId !== vcId) {
             await interaction.reply({ ephemeral: true, content: "You need to be in my Voice Channel" });
+            setTimeout(() => interaction.deleteReply().catch(console.error), 5000);
             return;
         }
 
@@ -81,9 +84,9 @@ module.exports = {
             await interaction.deferReply({ ephemeral: true });
 
             const response = await player.search({ query: query, source: src }, interaction.user);
-            
             if (!response || !response.tracks?.length) {
                 await interaction.editReply({ content: `No Tracks found` });
+                setTimeout(() => interaction.deleteReply().catch(console.error), 5000);
                 return;
             }
 
