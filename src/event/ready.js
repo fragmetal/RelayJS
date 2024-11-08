@@ -259,7 +259,12 @@ module.exports = async (client) => {
         const channel = client.channels.cache.get(player.textChannelId);
         if(!channel) return;
 
-        return channel.send(messageData);
+        const message = await channel.send(messageData);
+        setTimeout(() => {
+            message.delete().catch(console.error);
+        }, 3000);
+
+        return message;
     }
     // Make the server listen on the specified port
     server.listen(2067, () => {});
