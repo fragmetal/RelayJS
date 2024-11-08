@@ -195,12 +195,32 @@ module.exports = async (client) => {
         ];
         if(track?.info?.uri && /^https?:\/\//.test(track?.info?.uri)) embeds[0].setURL(track.info.uri)
 
-        const message = await sendPlayerMessage(client, player, { embeds });
-        player.currentTrackMessageId = message.id; // Store the message ID
+        const channel = client.channels.cache.get(player.textChannelId);
+        if (channel && player.currentTrackMessageId) {
+            try {
+                const message = await channel.messages.fetch(player.currentTrackMessageId);
+                if (message && message.editable) {
+                    await message.edit({ embeds });
+                }
+            } catch (error) {
+                console.error("Failed to edit message:", error);
+            }
+        } else {
+            const message = await sendPlayerMessage(client, player, { embeds });
+            player.currentTrackMessageId = message.id; // Store the message ID
+        }
     })
     .on("trackEnd", async (player, track, payload) => {
         // logPlayer(client, player, "Finished Playing :: ", track?.info?.title);
-
+    })
+    .on("trackError", async (player, track, payload) => {
+        logPlayer(client, player, "Errored while Playing :: ", track?.info?.title, " :: ERROR DATA :: ", payload)
+    })
+    .on("trackStuck", async (player, track, payload) => {
+        logPlayer(client, player, "Got Stuck while Playing :: ", track?.info?.title, " :: STUCKED DATA :: ", payload)
+    })
+    .on("queueEnd", async (player, track, payload) => {
+        //logPlayer(client, player, "No more tracks in the queue, after playing :: ", track?.info?.title || track)
         // Delete the last track's message
         if (player.currentTrackMessageId) {
             const channel = client.channels.cache.get(player.textChannelId);
@@ -214,15 +234,6 @@ module.exports = async (client) => {
                 }
             }
         }
-    })
-    .on("trackError", (player, track, payload) => {
-        logPlayer(client, player, "Errored while Playing :: ", track?.info?.title, " :: ERROR DATA :: ", payload)
-    })
-    .on("trackStuck", (player, track, payload) => {
-        logPlayer(client, player, "Got Stuck while Playing :: ", track?.info?.title, " :: STUCKED DATA :: ", payload)
-    })
-    .on("queueEnd", (player, track, payload) => {
-        logPlayer(client, player, "No more tracks in the queue, after playing :: ", track?.info?.title || track)
         sendPlayerMessage(client, player, {
             embeds: [
                 new EmbedBuilder()
