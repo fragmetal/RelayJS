@@ -77,23 +77,25 @@ module.exports = {
             return;
         }
 
-        const response = await player.search({ query: query, source: src }, interaction.user);
-        if (!response || !response.tracks?.length) {
-            await interaction.reply({ content: `No Tracks found`, ephemeral: true });
-            return;
+        try {
+            const response = await player.search({ query: query, source: src }, interaction.user);
+            if (!response || !response.tracks?.length) {
+                await interaction.reply({ content: `No Tracks found`, ephemeral: true });
+                return;
+            }
+
+            await player.queue.add(response.loadType === "playlist" ? response.tracks : response.tracks[0]);
+
+            await interaction.reply({
+                content: response.loadType === "playlist"
+                    ? `✅ Added [${response.tracks.length}] Tracks${response.playlist?.title ? ` - from the ${response.pluginInfo.type || "Playlist"} ${response.playlist.uri ? `[\`${response.playlist.title}\`](<${response.playlist.uri}>)` : `\`${response.playlist.title}\``}` : ""} at \`#${player.queue.tracks.length-response.tracks.length}\``
+                    : `✅ Added [\`${response.tracks[0].info.title}\`](<${response.tracks[0].info.uri}>) by \`${response.tracks[0].info.author}\` at \`#${player.queue.tracks.length}\``,
+                ephemeral: true
+            });
+        } catch (error) {
+            console.error("Error playing track:", error);
+            await interaction.reply({ content: `An error occurred while trying to play the track.`, ephemeral: true });
         }
-
-        await player.queue.add(response.loadType === "playlist" ? response.tracks : response.tracks[0]);
-
-        await interaction.reply({
-            content: response.loadType === "playlist"
-                ? `✅ Added [${response.tracks.length}] Tracks${response.playlist?.title ? ` - from the ${response.pluginInfo.type || "Playlist"} ${response.playlist.uri ? `[\`${response.playlist.title}\`](<${response.playlist.uri}>)` : `\`${response.playlist.title}\``}` : ""} at \`#${player.queue.tracks.length-response.tracks.length}\``
-                : `✅ Added [\`${response.tracks[0].info.title}\`](<${response.tracks[0].info.uri}>) by \`${response.tracks[0].info.author}\` at \`#${player.queue.tracks.length}\``,
-            ephemeral: true
-        });
-        setTimeout(() => {
-            interaction.deleteReply().catch(console.error);
-        }, 6000);
 
         if (!player.playing) await player.play(player.connected ? { volume: client.defaultVolume, paused: false } : undefined);
     }
