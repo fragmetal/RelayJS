@@ -37,7 +37,6 @@ module.exports = {
 
         const query = interaction.options instanceof CommandInteractionOptionResolver ? interaction.options.getString("query") : "";
 
-        // Determine the source based on the link
         let src;
         if (query.includes("youtube.com") || query.includes("youtu.be")) {
             src = "ytsearch";
@@ -56,7 +55,7 @@ module.exports = {
         } else if (query.includes("cornhub.com")) {
             src = "phsearch";
         } else {
-            src = "ytsearch"; // Default to YouTube search
+            src = "ytsearch";
         }
 
         const player = client.lavalink.getPlayer(interaction.guildId) || await client.lavalink.createPlayer({
@@ -81,7 +80,7 @@ module.exports = {
         }
 
         try {
-            await interaction.deferReply({ ephemeral: true });
+            await interaction.deferReply();
 
             const response = await player.search({ query: query, source: src }, interaction.user);
             if (!response || !response.tracks?.length) {
@@ -92,11 +91,12 @@ module.exports = {
 
             await player.queue.add(response.loadType === "playlist" ? response.tracks : response.tracks[0]);
 
-            await interaction.editReply({
+            const replyMessage = await interaction.editReply({
                 content: response.loadType === "playlist"
                     ? `✅ Added [${response.tracks.length}] Tracks${response.playlist?.title ? ` - from the ${response.pluginInfo.type || "Playlist"} ${response.playlist.uri ? `[\`${response.playlist.title}\`](<${response.playlist.uri}>)` : `\`${response.playlist.title}\``}` : ""} at \`#${player.queue.tracks.length-response.tracks.length}\``
                     : `✅ Added [\`${response.tracks[0].info.title}\`](<${response.tracks[0].info.uri}>) by \`${response.tracks[0].info.author}\` at \`#${player.queue.tracks.length}\``
             });
+            setTimeout(() => replyMessage.delete().catch(console.error), 3000);
         } catch (error) {
             console.error("Error playing track:", error);
             if (!interaction.replied) {
