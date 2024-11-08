@@ -86,7 +86,7 @@ module.exports = {
 
             await player.queue.add(response.loadType === "playlist" ? response.tracks : response.tracks[0]);
 
-            await interaction.reply({
+            await interaction.followUp({
                 content: response.loadType === "playlist"
                     ? `✅ Added [${response.tracks.length}] Tracks${response.playlist?.title ? ` - from the ${response.pluginInfo.type || "Playlist"} ${response.playlist.uri ? `[\`${response.playlist.title}\`](<${response.playlist.uri}>)` : `\`${response.playlist.title}\``}` : ""} at \`#${player.queue.tracks.length-response.tracks.length}\``
                     : `✅ Added [\`${response.tracks[0].info.title}\`](<${response.tracks[0].info.uri}>) by \`${response.tracks[0].info.author}\` at \`#${player.queue.tracks.length}\``,
