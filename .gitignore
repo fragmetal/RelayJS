@@ -1,6 +1,8 @@
 node_modules
 logs
-slash.js
+power.js
+pedro.js
 .cache
 *.zip
 discloud.config
+*.jar

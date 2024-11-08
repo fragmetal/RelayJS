@@ -1,5 +1,5 @@
 const { EmbedBuilder, Colors } = require('discord.js');
-const { formatMS_HHMMSS } = require("../../Utils/time.js");
+const { formatMS_HHMMSS } = require("../../utils/time.js");
 
 module.exports = {
     name: 'queue',

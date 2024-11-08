@@ -1,5 +1,5 @@
 const { CommandInteractionOptionResolver, GuildMember } = require("discord.js");
-const { formatMS_HHMMSS } = require("../../Utils/time.js");
+const { formatMS_HHMMSS } = require("../../utils/time.js");
 
 module.exports = {
     name: 'play',
@@ -12,7 +12,7 @@ module.exports = {
     options: [
         {
             name: 'query',
-            description: "Provide a link or search query to play music from various sources like YouTube, SoundCloud, Spotify, etc.",
+            description: "Provide a link to play from YouTube, SoundCloud, Spotify, etc.",
             type: 3,
             required: true
         }
@@ -22,18 +22,16 @@ module.exports = {
         if (!interaction.guildId) return;
 
         const vcId = interaction.member instanceof GuildMember ? interaction.member.voice.channelId : null;
-        if (!vcId) return interaction.reply({ ephemeral: true, content: `Join a voice Channel` }).then(() => {
-            setTimeout(() => {
-                interaction.deleteReply().catch(console.error);
-            }, 5000);
-        });
+        if (!vcId) {
+            await interaction.reply({ ephemeral: true, content: `Join a voice Channel` });
+            return;
+        }
 
         const vc = interaction.member instanceof GuildMember ? interaction.member.voice.channel : null;
-        if (!vc.joinable || !vc.speakable) return interaction.reply({ ephemeral: true, content: "I am not able to join your channel / speak in there." }).then(() => {
-            setTimeout(() => {
-                interaction.deleteReply().catch(console.error);
-            }, 5000);
-        });
+        if (!vc.joinable || !vc.speakable) {
+            await interaction.reply({ ephemeral: true, content: "I am not able to join your channel / speak in there." });
+            return;
+        }
 
         const query = interaction.options instanceof CommandInteractionOptionResolver ? interaction.options.getString("query") : "";
 
@@ -74,18 +72,16 @@ module.exports = {
 
         if (!connected) await player.connect();
 
-        if (player.voiceChannelId !== vcId) return interaction.reply({ ephemeral: true, content: "You need to be in my Voice Channel" }).then(() => {
-            setTimeout(() => {
-                interaction.deleteReply().catch(console.error);
-            }, 5000);
-        });
+        if (player.voiceChannelId !== vcId) {
+            await interaction.reply({ ephemeral: true, content: "You need to be in my Voice Channel" });
+            return;
+        }
 
         const response = await player.search({ query: query, source: src }, interaction.user);
-        if (!response || !response.tracks?.length) return interaction.reply({ content: `No Tracks found`, ephemeral: true }).then(() => {
-            setTimeout(() => {
-                interaction.deleteReply().catch(console.error);
-            }, 5000);
-        });
+        if (!response || !response.tracks?.length) {
+            await interaction.reply({ content: `No Tracks found`, ephemeral: true });
+            return;
+        }
 
         await player.queue.add(response.loadType === "playlist" ? response.tracks : response.tracks[0]);
 
