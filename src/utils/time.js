@@ -1,14 +1,17 @@
 // Define the function to format milliseconds into a time string
-async function formatMS_HHMMSS(num) {
-    return [86400000, 3600000, 60000, 1000, 1].reduce((p, c) => {
-        let res = ~~(num / c);
-        num -= res * c;
-        return [...p, res];
-    }, [])
-    .map((v, i) => i <= 1 && v === 0 ? undefined : [ i === 4 ? "." : "", v < 10 ? `0${v}` : v, [" Days, ", ":", ":", "", ""][i]].join(""))
-    .filter(Boolean)
-    .slice(0, -1)
-    .join("");
+function formatMS_HHMMSS(num) {
+    const hours = Math.floor(num / 3600000);
+    num %= 3600000;
+    const minutes = Math.floor(num / 60000);
+    num %= 60000;
+    const seconds = Math.floor(num / 1000);
+
+    const timeParts = [];
+    if (hours > 0) timeParts.push(hours.toString().padStart(2, '0'));
+    timeParts.push(minutes.toString().padStart(2, '0'));
+    timeParts.push(seconds.toString().padStart(2, '0'));
+
+    return timeParts.join(':');
 }
 
 // Define a delay function that returns a promise

@@ -1,7 +1,7 @@
 /*Power*/
 module.exports = {
     botMode: 'tester', // live or tester
-    botNode: 'localnode', // prodnode or localnode
+    botNode: 'prodnode', // prodnode or localnode
     mongoURI: `mongodb+srv://sadri:sadri@cluster0.eyfridx.mongodb.net/`,
     dbName: `Relay`
 };
