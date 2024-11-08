@@ -91,6 +91,10 @@ module.exports = {
                     ? `✅ Added [${response.tracks.length}] Tracks${response.playlist?.title ? ` - from the ${response.pluginInfo.type || "Playlist"} ${response.playlist.uri ? `[\`${response.playlist.title}\`](<${response.playlist.uri}>)` : `\`${response.playlist.title}\``}` : ""} at \`#${player.queue.tracks.length-response.tracks.length}\``
                     : `✅ Added [\`${response.tracks[0].info.title}\`](<${response.tracks[0].info.uri}>) by \`${response.tracks[0].info.author}\` at \`#${player.queue.tracks.length}\``,
                 ephemeral: true
+            }).then(() => {
+                setTimeout(() => {
+                    interaction.deleteReply().catch(console.error);
+                }, 3000);
             });
         } catch (error) {
             console.error("Error playing track:", error);
