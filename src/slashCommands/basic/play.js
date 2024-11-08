@@ -42,7 +42,7 @@ module.exports = {
             "music.youtube.com": "ytmsearch",
             "soundcloud.com": "scsearch",
             "deezer.com": "dzsearch",
-            "open.spotify.com": "spsearch",
+            "spotify.com": "spsearch",
             "music.apple.com": "amsearch",
             "bandcamp.com": "bcsearch",
             "cornhub.com": "phsearch"
