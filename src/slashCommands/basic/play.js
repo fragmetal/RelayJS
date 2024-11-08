@@ -36,19 +36,26 @@ module.exports = {
         const query = interaction.options instanceof CommandInteractionOptionResolver ? interaction.options.getString("query") : "";
 
         // Determine the source based on the link
-        const sourceMap = {
-            "youtube.com": "ytsearch",
-            "youtu.be": "ytsearch",
-            "music.youtube.com": "ytmsearch",
-            "soundcloud.com": "scsearch",
-            "deezer.com": "dzsearch",
-            "spotify.com": "spsearch",
-            "music.apple.com": "amsearch",
-            "bandcamp.com": "bcsearch",
-            "cornhub.com": "phsearch"
-        };
-
-        const src = Object.keys(sourceMap).find(key => query.includes(key)) || "ytsearch";
+        let src;
+        if (query.includes("youtube.com") || query.includes("youtu.be")) {
+            src = "ytsearch";
+        } else if (query.includes("music.youtube.com")) {
+            src = "ytmsearch";
+        } else if (query.includes("soundcloud.com")) {
+            src = "scsearch";
+        } else if (query.includes("deezer.com")) {
+            src = "dzsearch";
+        } else if (query.includes("spotify.com")) {
+            src = "spsearch";
+        } else if (query.includes("music.apple.com")) {
+            src = "amsearch";
+        } else if (query.includes("bandcamp.com")) {
+            src = "bcsearch";
+        } else if (query.includes("cornhub.com")) {
+            src = "phsearch";
+        } else {
+            src = "ytsearch"; // Default to YouTube search
+        }
 
         const player = client.lavalink.getPlayer(interaction.guildId) || await client.lavalink.createPlayer({
             guildId: interaction.guildId,
