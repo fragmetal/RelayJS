@@ -1,4 +1,4 @@
-const { Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, TextInputBuilder, ModalBuilder, TextInputStyle, StringSelectMenuBuilder, PermissionFlagsBits } = require('discord.js');
+const { Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, TextInputBuilder, ModalBuilder, TextInputStyle, StringSelectMenuBuilder, PermissionFlagsBits, CommandInteractionOptionResolver } = require('discord.js');
 const MongoUtilities = require('../utils/db');
 // Initialize cooldowns collection
 const cooldowns = new Collection();
@@ -106,20 +106,44 @@ module.exports = async (client, interaction) => {
                                 .setCustomId('pause_resume')
                                 .setLabel(player.paused ? 'Resume' : 'Pause')
                                 .setStyle(ButtonStyle.Secondary),
-            
                             new ButtonBuilder()
                                 .setCustomId('skip')
                                 .setLabel('Skip')
                                 .setStyle(ButtonStyle.Primary),
-                                
                             new ButtonBuilder()
                                 .setCustomId('stop')
                                 .setLabel('Stop')
-                                .setStyle(ButtonStyle.Danger)
+                                .setStyle(ButtonStyle.Danger),
+                            new ButtonBuilder()
+                                .setCustomId('filters')
+                                .setLabel('Filters')
+                                .setStyle(ButtonStyle.Secondary)
                         );
 
                 return interaction.editReply({ components: [updatedButtons] });
-
+            case 'filters':
+                let string = "";
+                switch ((interaction.options instanceof CommandInteractionOptionResolver ? interaction.options : {}).getString("filter")) {
+                    case "clear": await player.filterManager.resetFilters(); string = "Disabled all Filter-Effects"; break;
+                    case "lowpass": await player.filterManager.toggleLowPass(); string = player.filterManager.filters.lowPass ? "Applied Lowpass Filter-Effect" : "Disabled Lowpass Filter-Effect"; break;
+                    case "nightcore": await player.filterManager.toggleNightcore(); string = player.filterManager.filters.nightcore ? "Applied Nightcore Filter-Effect, ||disabled Vaporwave (if it was active)||" : "Disabled Nightcore Filter-Effect"; break;
+                    case "vaporwave": await player.filterManager.toggleVaporwave(); string = player.filterManager.filters.vaporwave ? "Applied Vaporwave Filter-Effect, ||disabled Nightcore (if it was active)||" : "Disabled Vaporwave Filter-Effect"; break;
+                    case "karaoke": await player.filterManager.toggleKaraoke(); string = player.filterManager.filters.karaoke ? "Applied Karaoke Filter-Effect" : "Disabled Karaoke Filter-Effect"; break;
+                    case "rotation": await player.filterManager.toggleRotation(); string = player.filterManager.filters.rotation ? "Applied Rotation Filter-Effect" : "Disabled Rotation Filter-Effect"; break;
+                    case "tremolo": await player.filterManager.toggleTremolo(); string = player.filterManager.filters.tremolo ? "Applied Tremolo Filter-Effect" : "Disabled Tremolo Filter-Effect"; break;
+                    case "vibrato": await player.filterManager.toggleVibrato(); string = player.filterManager.filters.vibrato ? "Applied Vibrato Filter-Effect" : "Disabled Vibrato Filter-Effect"; break;
+                    case "echo": await player.filterManager.lavalinkLavaDspxPlugin.toggleEcho(); string = player.filterManager.filters.lavalinkLavaDspxPlugin.echo ? "Applied Echo Filter-Effect" : "Disabled Echo Filter-Effect"; break;
+                    case "highPass": await player.filterManager.lavalinkLavaDspxPlugin.toggleHighPass(); string = player.filterManager.filters.lavalinkLavaDspxPlugin.highPass ? "Applied HighPass Filter-Effect" : "Disabled HighPass Filter-Effect"; break;
+                    case "lowPass": await player.filterManager.lavalinkLavaDspxPlugin.toggleLowPass(); string = player.filterManager.filters.lavalinkLavaDspxPlugin.lowPass ? "Applied LowPass Filter-Effect" : "Disabled LowPass Filter-Effect"; break;
+                    case "normalization": await player.filterManager.lavalinkLavaDspxPlugin.toggleNormalization(); string = player.filterManager.filters.lavalinkLavaDspxPlugin.normalization ? "Applied Normalization Filter-Effect" : "Disabled Normalization Filter-Effect"; break;
+                }
+                await interaction.reply({
+                    content: `✅ ${string}`
+                });
+                setTimeout(() => {
+                    interaction.deleteReply().catch(console.error);
+                }, 6000);
+                break;
             case 'limit':
                 if (!voiceChannel) {
                     await interaction.reply({ content: 'You are not in any temporary voice channel to perform this action.', ephemeral: true });
