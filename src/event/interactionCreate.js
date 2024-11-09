@@ -1,5 +1,6 @@
-const { Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, TextInputBuilder, ModalBuilder, TextInputStyle, StringSelectMenuBuilder, PermissionFlagsBits, CommandInteractionOptionResolver } = require('discord.js');
+const { Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, TextInputBuilder, ModalBuilder, TextInputStyle, StringSelectMenuBuilder, PermissionFlagsBits, ComponentType } = require('discord.js');
 const MongoUtilities = require('../utils/db');
+const EQList = require('../utils/EQList');
 // Initialize cooldowns collection
 const cooldowns = new Collection();
 
@@ -47,23 +48,16 @@ module.exports = async (client, interaction) => {
         }
         await command.run(client, interaction, mongoUtils); // Pass mongoUtils to the command
     } else if (interaction.isContextMenuCommand()) {
-        // Handle context menu commands
         const command = client.slash.get(interaction.commandName);
         if (!command) return;
-
         await command.execute(interaction);
     } else if (interaction.isButton()) {
-        const player = client.lavalink.players.get(interaction.guildId);
+        const player = client.lavalink.getPlayer(interaction.guildId);
         if (!player) return interaction.reply({ content: 'No player found.', ephemeral: true });
 
-        // Fetch the tempChannel data once for all cases
         const voiceChannelData = await mongoUtils.fetchVoiceChannelData(interaction.member);
-        const channelId = voiceChannel ? voiceChannel.id : null; // Get the ID of the voice channel
+        const tempChannel = voiceChannelData.tempChannels.find(channel => channel.TempChannel === voiceChannel.id);
 
-        // Find the tempChannel based on the voice channel ID
-        const tempChannel = voiceChannelData.tempChannels.find(channel => channel.TempChannel === channelId);
-
-        // Handle other button interactions (e.g., limit, privacy, etc.)
         switch (interaction.customId) {
             case 'skip':
                 if (player && typeof player.skip === 'function') {
@@ -117,41 +111,201 @@ module.exports = async (client, interaction) => {
                             new ButtonBuilder()
                                 .setCustomId('filters')
                                 .setLabel('Filters')
+                                .setStyle(ButtonStyle.Secondary),
+                            new ButtonBuilder()
+                                .setCustomId('equalizers')
+                                .setLabel('Equalizers')
                                 .setStyle(ButtonStyle.Secondary)
                         );
 
                 return interaction.editReply({ components: [updatedButtons] });
             case 'filters':
-                if (interaction.options instanceof CommandInteractionOptionResolver) {
-                    const filterOption = interaction.options.getString("filter");
-                    let string = "";
-                    switch (filterOption) {
-                        case "clear": await player.filterManager.resetFilters(); string = "Disabled all Filter-Effects"; break;
-                        case "lowpass": await player.filterManager.toggleLowPass(); string = player.filterManager.filters.lowPass ? "Applied Lowpass Filter-Effect" : "Disabled Lowpass Filter-Effect"; break;
-                        case "nightcore": await player.filterManager.toggleNightcore(); string = player.filterManager.filters.nightcore ? "Applied Nightcore Filter-Effect, ||disabled Vaporwave (if it was active)||" : "Disabled Nightcore Filter-Effect"; break;
-                        case "vaporwave": await player.filterManager.toggleVaporwave(); string = player.filterManager.filters.vaporwave ? "Applied Vaporwave Filter-Effect, ||disabled Nightcore (if it was active)||" : "Disabled Vaporwave Filter-Effect"; break;
-                        case "karaoke": await player.filterManager.toggleKaraoke(); string = player.filterManager.filters.karaoke ? "Applied Karaoke Filter-Effect" : "Disabled Karaoke Filter-Effect"; break;
-                        case "rotation": await player.filterManager.toggleRotation(); string = player.filterManager.filters.rotation ? "Applied Rotation Filter-Effect" : "Disabled Rotation Filter-Effect"; break;
-                        case "tremolo": await player.filterManager.toggleTremolo(); string = player.filterManager.filters.tremolo ? "Applied Tremolo Filter-Effect" : "Disabled Tremolo Filter-Effect"; break;
-                        case "vibrato": await player.filterManager.toggleVibrato(); string = player.filterManager.filters.vibrato ? "Applied Vibrato Filter-Effect" : "Disabled Vibrato Filter-Effect"; break;
-                        case "echo": await player.filterManager.lavalinkLavaDspxPlugin.toggleEcho(); string = player.filterManager.filters.lavalinkLavaDspxPlugin.echo ? "Applied Echo Filter-Effect" : "Disabled Echo Filter-Effect"; break;
-                        case "highPass": await player.filterManager.lavalinkLavaDspxPlugin.toggleHighPass(); string = player.filterManager.filters.lavalinkLavaDspxPlugin.highPass ? "Applied HighPass Filter-Effect" : "Disabled HighPass Filter-Effect"; break;
-                        case "lowPass": await player.filterManager.lavalinkLavaDspxPlugin.toggleLowPass(); string = player.filterManager.filters.lavalinkLavaDspxPlugin.lowPass ? "Applied LowPass Filter-Effect" : "Disabled LowPass Filter-Effect"; break;
-                        case "normalization": await player.filterManager.lavalinkLavaDspxPlugin.toggleNormalization(); string = player.filterManager.filters.lavalinkLavaDspxPlugin.normalization ? "Applied Normalization Filter-Effect" : "Disabled Normalization Filter-Effect"; break;
+                const filterOptions = [
+                    { label: 'Clear Filters', value: 'clear' },
+                    { label: 'Nightcore', value: 'nightcore' },
+                    { label: 'Vaporwave', value: 'vaporwave' },
+                    { label: 'LowPass', value: 'lowpass' },
+                    { label: 'Karaoke', value: 'karaoke' },
+                    { label: 'Rotation', value: 'rotation' },
+                    { label: 'Tremolo', value: 'tremolo' },
+                    { label: 'Vibrato', value: 'vibrato' },
+                    // { label: 'Echo', value: 'echo' },
+                    // { label: 'HighPass', value: 'highPass' },
+                    // { label: 'Normalization', value: 'normalization' }
+                ];
+
+                const filterSelectMenu = new StringSelectMenuBuilder()
+                    .setCustomId('filter_select')
+                    .setPlaceholder('Select a filter to toggle')
+                    .addOptions(filterOptions);
+
+                const filterRow = new ActionRowBuilder().addComponents(filterSelectMenu);
+
+                await interaction.reply({ content: 'Select a filter to toggle:', components: [filterRow], ephemeral: true });
+
+                const filterCollector = interaction.channel.createMessageComponentCollector({ componentType: ComponentType.StringSelect, time: 15000 });
+
+                filterCollector.on('collect', async i => {
+
+                    if (i.customId === 'filter_select' && i.user.id === interaction.user.id) {
+                        const selectedFilter = i.values[0];
+                        let string = "";
+
+                        try {
+                            switch (selectedFilter) {
+                                case "clear":
+                                    await player.filterManager.resetFilters();
+                                    string = "Disabled all Filter-Effects";
+                                    break;
+                                case "lowpass":
+                                    await player.filterManager.toggleLowPass();
+                                    string = player.filterManager.filters.lowPass ? "Applied Lowpass Filter-Effect" : "Disabled Lowpass Filter-Effect";
+                                    break;
+                                case "nightcore":
+                                    await player.filterManager.toggleNightcore();
+                                    string = player.filterManager.filters.nightcore ? "Applied Nightcore Filter-Effect, ||disabled Vaporwave (if it was active)||" : "Disabled Nightcore Filter-Effect";
+                                    break;
+                                case "vaporwave":
+                                    await player.filterManager.toggleVaporwave();
+                                    string = player.filterManager.filters.vaporwave ? "Applied Vaporwave Filter-Effect, ||disabled Nightcore (if it was active)||" : "Disabled Vaporwave Filter-Effect";
+                                    break;
+                                case "karaoke":
+                                    await player.filterManager.toggleKaraoke();
+                                    string = player.filterManager.filters.karaoke ? "Applied Karaoke Filter-Effect" : "Disabled Karaoke Filter-Effect";
+                                    break;
+                                case "rotation":
+                                    await player.filterManager.toggleRotation();
+                                    string = player.filterManager.filters.rotation ? "Applied Rotation Filter-Effect" : "Disabled Rotation Filter-Effect";
+                                    break;
+                                case "tremolo":
+                                    await player.filterManager.toggleTremolo();
+                                    string = player.filterManager.filters.tremolo ? "Applied Tremolo Filter-Effect" : "Disabled Tremolo Filter-Effect";
+                                    break;
+                                case "vibrato":
+                                    await player.filterManager.toggleVibrato();
+                                    string = player.filterManager.filters.vibrato ? "Applied Vibrato Filter-Effect" : "Disabled Vibrato Filter-Effect";
+                                    break;
+                                // case "echo":
+                                //     await player.filterManager.lavalinkLavaDspxPlugin.toggleEcho();
+                                //     string = player.filterManager.filters.lavalinkLavaDspxPlugin.echo ? "Applied Echo Filter-Effect" : "Disabled Echo Filter-Effect";
+                                //     break;
+                                // case "highPass":
+                                //     await player.filterManager.lavalinkLavaDspxPlugin.toggleHighPass();
+                                //     string = player.filterManager.filters.lavalinkLavaDspxPlugin.highPass ? "Applied HighPass Filter-Effect" : "Disabled HighPass Filter-Effect";
+                                //     break;
+                                // case "normalization":
+                                //     await player.filterManager.lavalinkLavaDspxPlugin.toggleNormalization();
+                                //     string = player.filterManager.filters.lavalinkLavaDspxPlugin.normalization ? "Applied Normalization Filter-Effect" : "Disabled Normalization Filter-Effect";
+                                //     break;
+                            }
+
+                            await i.update({ content: `✅ ${string}`, components: [] });
+                            setTimeout(() => {
+                                i.deleteReply().catch(console.error);
+                            }, 6000);
+                        } catch (error) {
+                            console.error(error);
+                            await i.update({ content: 'An error occurred while applying the filter.', components: [] });
+                            setTimeout(() => {
+                                i.deleteReply().catch(console.error);
+                            }, 6000);
+                        }
+
+                        filterCollector.stop();
                     }
-                    await interaction.reply({
-                        content: `✅ ${string}`
-                    });
-                    setTimeout(() => {
-                        interaction.deleteReply().catch(console.error);
-                    }, 6000);
-                } else {
-                    await interaction.reply({ content: 'Invalid interaction options.', ephemeral: true });
-                    setTimeout(() => {
-                        interaction.deleteReply().catch(console.error);
-                    }, 6000);
-                }
+                });
+
+                filterCollector.on('end', async collected => {
+                    if (collected.size === 0) {
+                        await interaction.editReply({ content: 'No filter selected, action cancelled.', components: [] });
+                    }
+                });
                 break;
+            case 'equalizers':
+                const equalizerOptions = [
+                    { label: 'Clear Equalizers', value: 'clear' },
+                    { label: 'Bassboost (High)', value: 'bass_high' },
+                    { label: 'Bassboost (Medium)', value: 'bass_medium' },
+                    { label: 'Bassboost (Low)', value: 'bass_low' },
+                    { label: 'Better Music', value: 'bettermusic' },
+                    { label: 'Rock', value: 'rock' },
+                    { label: 'Classic', value: 'classic' }
+                ];
+
+                const equalizerSelectMenu = new StringSelectMenuBuilder()
+                    .setCustomId('equalizer_select')
+                    .setPlaceholder('Select an equalizer to apply')
+                    .addOptions(equalizerOptions);
+
+                const equalizerRow = new ActionRowBuilder().addComponents(equalizerSelectMenu);
+
+                await interaction.reply({ content: 'Select an equalizer to apply:', components: [equalizerRow], ephemeral: true });
+
+                const equalizerCollector = interaction.channel.createMessageComponentCollector({ componentType: ComponentType.StringSelect, time: 15000 });
+
+                equalizerCollector.on('collect', async i => {
+                    if (i.customId === 'equalizer_select' && i.user.id === interaction.user.id) {
+                        const selectedEqualizer = i.values[0];
+                        let string = "";
+
+                        try {
+                            switch (selectedEqualizer) {
+                                case "clear":
+                                    await player.filterManager.clearEQ();
+                                    string = "Cleared all Equalizers";
+                                    break;
+                                case "bass_high":
+                                    await player.filterManager.setEQ(EQList.BassboostHigh);
+                                    string = "Applied the 'High Bassboost' Equalizer";
+                                    break;
+                                case "bass_medium":
+                                    await player.filterManager.setEQ(EQList.BassboostMedium);
+                                    string = "Applied the 'Medium Bassboost' Equalizer";
+                                    break;
+                                case "bass_low":
+                                    await player.filterManager.setEQ(EQList.BassboostLow);
+                                    string = "Applied the 'Low Bassboost' Equalizer";
+                                    break;
+                                case "bettermusic":
+                                    await player.filterManager.setEQ(EQList.BetterMusic);
+                                    string = "Applied the 'Better Music' Equalizer";
+                                    break;
+                                case "rock":
+                                    await player.filterManager.setEQ(EQList.Rock);
+                                    string = "Applied the 'Rock' Equalizer";
+                                    break;
+                                case "classic":
+                                    await player.filterManager.setEQ(EQList.Classic);
+                                    string = "Applied the 'Classic' Equalizer";
+                                    break;
+                            }
+
+                            await i.update({ content: `✅ ${string}`, components: [] });
+                            setTimeout(() => {
+                                i.deleteReply().catch(console.error);
+                            }, 6000);
+                        } catch (error) {
+                            console.error(error);
+                            await i.update({ content: 'An error occurred while applying the equalizer.', components: [] });
+                            setTimeout(() => {
+                                i.deleteReply().catch(console.error);
+                            }, 6000);
+                        }
+
+                        equalizerCollector.stop();
+                    }
+                });
+
+                equalizerCollector.on('end', async collected => {
+                    if (collected.size === 0) {
+                        await interaction.editReply({ content: 'No equalizer selected, action cancelled.', components: [] });
+                        setTimeout(() => {
+                            interaction.deleteReply().catch(console.error);
+                        }, 6000);
+                    }
+                });
+                break;
+                
             case 'limit':
                 if (!voiceChannel) {
                     await interaction.reply({ content: 'You are not in any temporary voice channel to perform this action.', ephemeral: true });

@@ -86,19 +86,6 @@ module.exports = async (client) => {
     })
     .on("playerDestroy", async(player, reason) => {
         //logPlayer(client, player, "Player got Destroyed :: ");
-        player.disconnect();
-        if (player.currentTrackMessageId) {
-            const channel = client.channels.cache.get(player.textChannelId);
-            if (channel) {
-                try {
-                    const message = await channel.messages.fetch(player.currentTrackMessageId);
-                    if (message)
-                        await message.delete();
-                } catch (error) {
-                    console.error("Failed to delete message:", error);
-                }
-            }
-        }
         // Remove player data from cache
         playerCache.delete(player.guildId);
         // console.log(`Player for guild ${player.guildId} removed from cache.`);
@@ -230,6 +217,10 @@ module.exports = async (client) => {
                 new ButtonBuilder()
                     .setCustomId('filters')
                     .setLabel('Filters')
+                    .setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder()
+                    .setCustomId('equalizers')
+                    .setLabel('Equalizers')
                     .setStyle(ButtonStyle.Secondary)
             );
 
@@ -271,6 +262,20 @@ module.exports = async (client) => {
         logPlayer(client, player, "Got Stuck while Playing :: ", track?.info?.title, " :: STUCKED DATA :: ", payload)
     })
     .on("queueEnd", async (player, track, payload) => {
+
+        player.disconnect();
+        if (player.currentTrackMessageId) {
+            const channel = client.channels.cache.get(player.textChannelId);
+            if (channel) {
+                try {
+                    const message = await channel.messages.fetch(player.currentTrackMessageId);
+                    if (message)
+                        await message.delete();
+                } catch (error) {
+                    console.error("Failed to delete message:", error);
+                }
+            }
+        }
         //logPlayer(client, player, "No more tracks in the queue, after playing :: ", track?.info?.title || track)
         sendPlayerMessage(client, player, {
             embeds: [
