@@ -83,23 +83,23 @@ module.exports = async (client) => {
 
     client.lavalink.on("playerCreate", (player) => {
         // Check if the player has a method to set filters or equalizer
-        if (typeof player.filters === 'function') {
+        if (player.filters && typeof player.filters === 'function') {
             const equalizerBands = [
-                { band: 0, gain: 0.3 },
-                { band: 1, gain: 0.25 },
-                { band: 2, gain: 0.2 },
-                { band: 3, gain: 0.15 },
-                { band: 4, gain: 0.1 },
-                { band: 5, gain: 0.05 },
-                { band: 6, gain: 0.0 },
-                { band: 7, gain: 0.05 },
-                { band: 8, gain: 0.1 },
-                { band: 9, gain: 0.15 },
-                { band: 10, gain: 0.2 },
-                { band: 11, gain: 0.25 },
-                { band: 12, gain: 0.3 },
-                { band: 13, gain: 0.35 },
-                { band: 14, gain: 0.4 }
+                { band: 0, gain: 0.5 },  // 25Hz - Sub-bass (boosted)
+                { band: 1, gain: 0.45 }, // 40Hz - Bass (boosted)
+                { band: 2, gain: 0.4 },  // 63Hz - Bass (boosted)
+                { band: 3, gain: 0.35 }, // 100Hz - Low midrange (boosted)
+                { band: 4, gain: 0.3 },  // 160Hz - Low midrange (boosted)
+                { band: 5, gain: 0.25 }, // 250Hz - Midrange (boosted)
+                { band: 6, gain: 0.2 },  // 400Hz - Midrange (boosted)
+                { band: 7, gain: 0.15 }, // 630Hz - Midrange
+                { band: 8, gain: 0.1 },  // 1kHz - High midrange
+                { band: 9, gain: 0.15 }, // 1.6kHz - High midrange
+                { band: 10, gain: 0.2 }, // 2.5kHz - Presence
+                { band: 11, gain: 0.25 },// 4kHz - Presence
+                { band: 12, gain: 0.3 }, // 6.3kHz - Brilliance
+                { band: 13, gain: 0.35 },// 10kHz - Brilliance
+                { band: 14, gain: 0.4 }  // 16kHz - Brilliance
             ];
 
             player.filters({ equalizer: equalizerBands });
