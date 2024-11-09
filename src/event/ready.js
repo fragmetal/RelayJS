@@ -3,7 +3,6 @@ const MongoUtilities = require('../utils/db'); // Import the class directly
 const createInterface = require('../utils/createInterface'); // Import the function
 const { formatMS_HHMMSS } = require("../utils/time");
 const http = require('http');
-const { FilterBuilder } = require('lavalink-client');
 
 const messagesMap = new Map();
 const playerCache = new Map();
@@ -83,29 +82,30 @@ module.exports = async (client) => {
     });
 
     client.lavalink.on("playerCreate", (player) => {
-        const filterBuilder = new FilterBuilder()
-            .setEqualizer([
-                { band: 0, gain: 0.5 },  // 25Hz - Sub-bass (boosted)
-                { band: 1, gain: 0.45 }, // 40Hz - Bass (boosted)
-                { band: 2, gain: 0.4 },  // 63Hz - Bass (boosted)
-                { band: 3, gain: 0.35 }, // 100Hz - Low midrange (boosted)
-                { band: 4, gain: 0.3 },  // 160Hz - Low midrange (boosted)
-                { band: 5, gain: 0.25 }, // 250Hz - Midrange (boosted)
-                { band: 6, gain: 0.2 },  // 400Hz - Midrange (boosted)
-                { band: 7, gain: 0.15 }, // 630Hz - Midrange
-                { band: 8, gain: 0.1 },  // 1kHz - High midrange
-                { band: 9, gain: 0.15 }, // 1.6kHz - High midrange
-                { band: 10, gain: 0.2 }, // 2.5kHz - Presence
-                { band: 11, gain: 0.25 },// 4kHz - Presence
-                { band: 12, gain: 0.3 }, // 6.3kHz - Brilliance
-                { band: 13, gain: 0.35 },// 10kHz - Brilliance
-                { band: 14, gain: 0.4 }  // 16kHz - Brilliance
-            ])
-            .setVolume(1.0); // Set volume to 100%
+        const equalizerBands = [
+            { band: 0, gain: 0.5 },  // 25Hz - Sub-bass (boosted)
+            { band: 1, gain: 0.45 }, // 40Hz - Bass (boosted)
+            { band: 2, gain: 0.4 },  // 63Hz - Bass (boosted)
+            { band: 3, gain: 0.35 }, // 100Hz - Low midrange (boosted)
+            { band: 4, gain: 0.3 },  // 160Hz - Low midrange (boosted)
+            { band: 5, gain: 0.25 }, // 250Hz - Midrange (boosted)
+            { band: 6, gain: 0.2 },  // 400Hz - Midrange (boosted)
+            { band: 7, gain: 0.15 }, // 630Hz - Midrange
+            { band: 8, gain: 0.1 },  // 1kHz - High midrange
+            { band: 9, gain: 0.15 }, // 1.6kHz - High midrange
+            { band: 10, gain: 0.2 }, // 2.5kHz - Presence
+            { band: 11, gain: 0.25 },// 4kHz - Presence
+            { band: 12, gain: 0.3 }, // 6.3kHz - Brilliance
+            { band: 13, gain: 0.35 },// 10kHz - Brilliance
+            { band: 14, gain: 0.4 }  // 16kHz - Brilliance
+        ];
 
-        player.setFilters(filterBuilder.build());
+        player.setFilters({
+            equalizer: equalizerBands,
+            volume: 1.0 // Set volume to 100%
+        });
 
-        // console.log(`Filters applied to player for guild ${player.guildId}.`);
+        console.log(`Filters applied to player for guild ${player.guildId}.`);
     })
     .on("playerDestroy", async(player, reason) => {
         //logPlayer(client, player, "Player got Destroyed :: ");
