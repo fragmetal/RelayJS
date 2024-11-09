@@ -89,7 +89,6 @@ module.exports = async (client) => {
         }
     })
     .on("playerDestroy", async(player, reason) => {
-        //logPlayer(client, player, "Player got Destroyed :: ");
         if (player.currentTrackMessageId) {
             const channel = client.channels.cache.get(player.textChannelId);
             if (channel) {
