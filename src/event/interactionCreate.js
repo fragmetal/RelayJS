@@ -229,7 +229,11 @@ module.exports = async (client, interaction) => {
                     { label: 'Bassboost (Low)', value: 'bass_low' },
                     { label: 'Better Music', value: 'bettermusic' },
                     { label: 'Rock', value: 'rock' },
-                    { label: 'Classic', value: 'classic' }
+                    { label: 'Classic', value: 'classic' },
+                    { label: 'Pop', value: 'pop' },
+                    { label: 'Electronic', value: 'electronic' },
+                    { label: 'Full Sound', value: 'fullsound' },
+                    { label: 'Gaming', value: 'gaming' }
                 ];
 
                 const equalizerSelectMenu = new StringSelectMenuBuilder()
@@ -278,6 +282,22 @@ module.exports = async (client, interaction) => {
                                     await player.filterManager.setEQ(EQList.Classic);
                                     string = "Applied the 'Classic' Equalizer";
                                     break;
+                                case "pop":
+                                    await player.filterManager.setEQ(EQList.Pop);
+                                    string = "Applied the 'Pop' Equalizer";
+                                    break;
+                                case "electronic":
+                                    await player.filterManager.setEQ(EQList.Electronic);
+                                    string = "Applied the 'Electronic' Equalizer";
+                                    break;
+                                case "fullsound":
+                                    await player.filterManager.setEQ(EQList.FullSound);
+                                    string = "Applied the 'Full Sound' Equalizer";
+                                    break;
+                                case "gaming":
+                                    await player.filterManager.setEQ(EQList.Gaming);
+                                    string = "Applied the 'Gaming' Equalizer";
+                                    break;
                             }
 
                             await i.update({ content: `✅ ${string}`, components: [] });
@@ -305,7 +325,52 @@ module.exports = async (client, interaction) => {
                     }
                 });
                 break;
-                
+            case 'loop_playlist':
+                if (!interaction.deferred && !interaction.replied) {
+                    await interaction.deferUpdate();
+                }
+
+                // Assuming playerCache is a Map or similar structure
+                const playerCache = client.playerCache || new Map();
+                const currentLoopState = playerCache.get(interaction.guildId)?.loop || false;
+
+                // Toggle loop state
+                const newLoopState = !currentLoopState;
+                playerCache.set(interaction.guildId, { ...playerCache.get(interaction.guildId), loop: newLoopState });
+
+                const loopMessage = newLoopState ? 'Looping the playlist is now enabled.' : 'Looping the playlist is now disabled.';
+                await interaction.editReply({ content: loopMessage });
+                // Update the button label to reflect the new state
+                const buttonsRow = new ActionRowBuilder()
+                    .addComponents(
+                        new ButtonBuilder()
+                            .setCustomId('pause_resume')
+                            .setLabel(player.paused ? 'Resume' : 'Pause')
+                            .setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder()
+                            .setCustomId('skip')
+                            .setLabel('Skip')
+                            .setStyle(ButtonStyle.Primary),
+                        new ButtonBuilder()
+                            .setCustomId('stop')
+                            .setLabel('Stop')
+                            .setStyle(ButtonStyle.Danger),
+                        new ButtonBuilder()
+                            .setCustomId('filters')
+                            .setLabel('Filters')
+                            .setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder()
+                            .setCustomId('equalizers')
+                            .setLabel('Equalizers')
+                            .setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder()
+                            .setCustomId('loop_playlist')
+                            .setLabel(newLoopState ? 'Repeat' : 'No Repeat')
+                            .setStyle(ButtonStyle.Secondary)
+                    );
+
+                await interaction.editReply({ components: [buttonsRow] });
+                break;
             case 'limit':
                 if (!voiceChannel) {
                     await interaction.reply({ content: 'You are not in any temporary voice channel to perform this action.', ephemeral: true });

@@ -78,7 +78,7 @@ module.exports = {
 
             const nextTracks = player.queue.tracks.slice(0, 10);
             if (nextTracks.length > 0) {
-                const maxLength = 50;
+                const maxLength = 60;
                 const nextSongs = nextTracks.map((track, index) => {
                     const requesterTag = track.requester ? track.requester.tag : 'Unknown';
                     let title = track.info.title;
@@ -86,7 +86,7 @@ module.exports = {
                         title = title.substring(0, maxLength - 3) + '...';
                     }
                     const duration = formatMS_HHMMSS(track.info.duration);
-                    return `**${index + 1}. ${title}** | \`${duration}\` | by: \`${requesterTag}\``;
+                    return `**${index + 1}. ${title}** - ${currentTrack.info.author} | \`${duration}\` | by: \`${requesterTag}\``;
                 }).join('\n');
 
                 embed.addFields({ name: '⏭️ Next Songs:', value: nextSongs });

@@ -69,10 +69,6 @@ module.exports = {
             applyVolumeAsFilter: false,
         });
 
-        const connected = player.connected;
-
-        if (!connected) await player.connect();
-
         if (player.voiceChannelId !== vcId) {
             await interaction.reply({ ephemeral: true, content: "You need to be in my Voice Channel" });
             setTimeout(() => interaction.deleteReply().catch(console.error), 5000);
@@ -96,7 +92,8 @@ module.exports = {
                     ? `✅ Added [${response.tracks.length}] Tracks${response.playlist?.title ? ` - from the ${response.pluginInfo.type || "Playlist"} ${response.playlist.uri ? `[\`${response.playlist.title}\`](<${response.playlist.uri}>)` : `\`${response.playlist.title}\``}` : ""} at \`#${player.queue.tracks.length-response.tracks.length}\``
                     : `✅ Added [\`${response.tracks[0].info.title}\`](<${response.tracks[0].info.uri}>) by \`${response.tracks[0].info.author}\` at \`#${player.queue.tracks.length}\``
             });
-            setTimeout(() => replyMessage.delete().catch(console.error), 3000);
+            setTimeout(() => replyMessage.delete().catch(console.error), 2000);
+            if (!player.connected) await player.connect();
         } catch (error) {
             console.error("Error playing track:", error);
             if (!interaction.replied) {

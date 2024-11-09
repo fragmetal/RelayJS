@@ -82,13 +82,27 @@ module.exports = async (client) => {
     });
 
     client.lavalink.on("playerCreate", (player) => {
-
+        if (player && player.guildId) {
+            playerCache.set(player.guildId, { player, loop: false });
+        } else {
+            console.error("Player guildId is undefined. Cannot update cache.");
+        }
     })
     .on("playerDestroy", async(player, reason) => {
         //logPlayer(client, player, "Player got Destroyed :: ");
-        // Remove player data from cache
+        if (player.currentTrackMessageId) {
+            const channel = client.channels.cache.get(player.textChannelId);
+            if (channel) {
+                try {
+                    const message = await channel.messages.fetch(player.currentTrackMessageId);
+                    if (message)
+                        await message.delete();
+                } catch (error) {
+                    console.error("Failed to delete message:", error);
+                }
+            }
+        }
         playerCache.delete(player.guildId);
-        // console.log(`Player for guild ${player.guildId} removed from cache.`);
     })
     .on("playerDisconnect", async (player, voiceChannelId) => {
         //logPlayer(client, player, "Player disconnected the Voice Channel :: ", voiceChannelId);
@@ -102,13 +116,10 @@ module.exports = async (client) => {
     .on("playerUpdate", async (player) => {
         // Log the player object to inspect its properties
         // console.log("Player object:", player);
-
-        // Use guildId as the unique identifier for caching
-        if (player && player.guildId) {
-            playerCache.set(player.guildId, player);
-            // console.log(`Player for guild ${player.guildId} updated in cache.`);
-        } else {
-            console.error("Player guildId is undefined. Cannot update cache.");
+        const voiceChannel = client.channels.cache.get(player.voiceChannelId);
+        if (voiceChannel && voiceChannel.members.size === 1) {
+            player.destroy();
+            // console.log(`Bot disconnected from voice channel ${voiceChannel.id} as it was the only member.`);
         }
     })
     .on("playerMuteChange", async (player, selfMuted, serverMuted) => {
@@ -221,6 +232,10 @@ module.exports = async (client) => {
                 new ButtonBuilder()
                     .setCustomId('equalizers')
                     .setLabel('Equalizers')
+                    .setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder()
+                    .setCustomId('loop_playlist')
+                    .setLabel(player.loop ? 'Repeat' : 'No Repeat')
                     .setStyle(ButtonStyle.Secondary)
             );
 
@@ -245,15 +260,32 @@ module.exports = async (client) => {
 
     })
     .on("trackEnd", async (player, track, payload) => {
-        // logPlayer(client, player, "Finished Playing :: ", track?.info?.title);
-        // sendPlayerMessage(client, player, {
-        //     embeds: [
-        //         new EmbedBuilder()
-        //         .setColor("Red")
-        //         .setTitle("🛑 Track Ended")
-        //         .setTimestamp()
-        //     ]
-        // }, true);
+        const playerData = playerCache.get(player.guildId);
+        if (playerData && playerData.loop) {
+            player.queue.add(track);
+            player.play();
+        } else {
+            player.disconnect();
+            if (player.currentTrackMessageId) {
+                const channel = client.channels.cache.get(player.textChannelId);
+                if (channel) {
+                    try {
+                        const message = await channel.messages.fetch(player.currentTrackMessageId);
+                        if (message) await message.delete();
+                    } catch (error) {
+                        console.error("Failed to delete message:", error);
+                    }
+                }
+            }
+            sendPlayerMessage(client, player, {
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor("Red")
+                        .setTitle("❌ Queue Ended")
+                        .setTimestamp()
+                ]
+            }, true);
+        }
     })
     .on("trackError", async (player, track, payload) => {
         logPlayer(client, player, "Errored while Playing :: ", track?.info?.title, " :: ERROR DATA :: ", payload)
