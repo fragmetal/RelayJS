@@ -82,29 +82,31 @@ module.exports = async (client) => {
     });
 
     client.lavalink.on("playerCreate", (player) => {
-        // Define an equalizer configuration for bass boost, enhanced treble, and standout mids
-        const equalizerBands = [
-            { band: 0, gain: 0.3 },  // 25 Hz - Bass boost
-            { band: 1, gain: 0.25 }, // 40 Hz - Bass boost
-            { band: 2, gain: 0.2 },  // 63 Hz - Bass boost
-            { band: 3, gain: 0.15 }, // 100 Hz - Bass boost
-            { band: 4, gain: 0.1 },  // 160 Hz - Mids
-            { band: 5, gain: 0.05 }, // 250 Hz - Mids
-            { band: 6, gain: 0.0 },  // 400 Hz - Mids
-            { band: 7, gain: 0.05 }, // 630 Hz - Mids
-            { band: 8, gain: 0.1 },  // 1 kHz - Mids
-            { band: 9, gain: 0.15 }, // 1.6 kHz - Treble
-            { band: 10, gain: 0.2 }, // 2.5 kHz - Treble
-            { band: 11, gain: 0.25 },// 4 kHz - Treble
-            { band: 12, gain: 0.3 }, // 6.3 kHz - Treble
-            { band: 13, gain: 0.35 },// 10 kHz - Treble
-            { band: 14, gain: 0.4 }  // 16 kHz - Treble
-        ];
+        // Check if the player has a method to set filters or equalizer
+        if (typeof player.filters === 'function') {
+            const equalizerBands = [
+                { band: 0, gain: 0.3 },
+                { band: 1, gain: 0.25 },
+                { band: 2, gain: 0.2 },
+                { band: 3, gain: 0.15 },
+                { band: 4, gain: 0.1 },
+                { band: 5, gain: 0.05 },
+                { band: 6, gain: 0.0 },
+                { band: 7, gain: 0.05 },
+                { band: 8, gain: 0.1 },
+                { band: 9, gain: 0.15 },
+                { band: 10, gain: 0.2 },
+                { band: 11, gain: 0.25 },
+                { band: 12, gain: 0.3 },
+                { band: 13, gain: 0.35 },
+                { band: 14, gain: 0.4 }
+            ];
 
-        // Apply the equalizer to the player
-        player.setEqualizer(...equalizerBands);
-
-        //console.log(`Equalizer applied to player for guild ${player.guildId}.`);
+            player.filters({ equalizer: equalizerBands });
+            // console.log(`Equalizer applied to player for guild ${player.guildId}.`);
+        } else {
+            console.error("Equalizer method not available on player.");
+        }
     })
     .on("playerDestroy", async(player, reason) => {
         //logPlayer(client, player, "Player got Destroyed :: ");
