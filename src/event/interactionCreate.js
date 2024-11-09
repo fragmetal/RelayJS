@@ -1,4 +1,4 @@
-const { Collection, ActionRowBuilder, TextInputBuilder, ModalBuilder, TextInputStyle, StringSelectMenuBuilder, PermissionFlagsBits } = require('discord.js');
+const { Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, TextInputBuilder, ModalBuilder, TextInputStyle, StringSelectMenuBuilder, PermissionFlagsBits } = require('discord.js');
 const MongoUtilities = require('../utils/db');
 // Initialize cooldowns collection
 const cooldowns = new Collection();
@@ -53,6 +53,9 @@ module.exports = async (client, interaction) => {
 
         await command.execute(interaction);
     } else if (interaction.isButton()) {
+        const player = client.lavalink.players.get(interaction.guildId);
+        if (!player) return interaction.reply({ content: 'No player found.', ephemeral: true });
+
         // Fetch the tempChannel data once for all cases
         const voiceChannelData = await mongoUtils.fetchVoiceChannelData(interaction.member);
         const channelId = voiceChannel ? voiceChannel.id : null; // Get the ID of the voice channel
@@ -60,8 +63,46 @@ module.exports = async (client, interaction) => {
         // Find the tempChannel based on the voice channel ID
         const tempChannel = voiceChannelData.tempChannels.find(channel => channel.TempChannel === channelId);
 
-        // Handle button interactions
+        // Handle other button interactions (e.g., limit, privacy, etc.)
         switch (interaction.customId) {
+            case 'skip':
+                player.stop();
+                return interaction.reply({ content: 'Track skipped.', ephemeral: true });
+            case 'stop':
+                player.destroy();
+                return interaction.reply({ content: 'Player stopped and destroyed.', ephemeral: true });
+            case 'pause_resume':
+                if (!interaction.deferred && !interaction.replied) {
+                    await interaction.deferUpdate();
+                }
+
+                if (player.paused) {
+                    player.resume();
+                } else {
+                    player.pause();
+                }
+
+                // Create a new ActionRow with updated buttons
+                const updatedButtons = new ActionRowBuilder()
+                        .addComponents(
+                            new ButtonBuilder()
+                                .setCustomId('pause_resume')
+                                .setLabel(player.paused ? 'Resume' : 'Pause')
+                                .setStyle(ButtonStyle.Secondary),
+            
+                            new ButtonBuilder()
+                                .setCustomId('skip')
+                                .setLabel('Skip')
+                                .setStyle(ButtonStyle.Primary),
+                                
+                            new ButtonBuilder()
+                                .setCustomId('stop')
+                                .setLabel('Stop')
+                                .setStyle(ButtonStyle.Danger)
+                        );
+
+                return interaction.editReply({ components: [updatedButtons] });
+
             case 'limit':
                 if (!voiceChannel) {
                     await interaction.reply({ content: 'You are not in any temporary voice channel to perform this action.', ephemeral: true });

@@ -1,10 +1,11 @@
-const { ActivityType, EmbedBuilder } = require('discord.js'); // Ensure correct imports
+const { ActivityType, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js'); // Ensure correct imports
 const MongoUtilities = require('../utils/db'); // Import the class directly
 const createInterface = require('../utils/createInterface'); // Import the function
 const { formatMS_HHMMSS } = require("../utils/time");
 const http = require('http');
 
 const messagesMap = new Map();
+const playerCache = new Map();
 
 module.exports = async (client) => {
     const mongoUtils = new MongoUtilities(client); // Create an instance of MongoUtilities
@@ -23,12 +24,12 @@ module.exports = async (client) => {
         const minutes = Math.floor((uptime % (60 * 60)) / 60);
         uptimeString += `${minutes} m`;
     
-        client.user.setActivity('customstatus', { type: ActivityType.Custom, state: '[ Uptime: ' + uptimeString + ' ] 🛠️ USE / ' });
+        client.user.setActivity('customstatus', { type: ActivityType.Custom, state: '[ Uptime: ' + uptimeString + ' ]' });
     };
     
     updateUptime();
     setInterval(updateUptime, 60 * 1000); // Update every 1 minute
-    
+
     client.logger.info(`[!] The bot has ${client.slash.size} (/) commands`);
     client.logger.info(`[!] ${client.user.username} is now started...`);
     const guilds = client.guilds.cache; // Get all guilds the bot is in
@@ -85,15 +86,14 @@ module.exports = async (client) => {
     })
     .on("playerDestroy", (player, reason) => {
         //logPlayer(client, player, "Player got Destroyed :: ");
-        sendPlayerMessage(client, player, {
-            embeds: [
-                new EmbedBuilder()
-                .setColor("Red")
-                .setTitle("❌ Player Destroyed")
-                .setDescription(`Reason: ${reason || "Unknown"}`)
-                .setTimestamp()
-            ]
-        });
+        // const cachedPlayer = getPlayerFromCache(player.guildId);
+        // if (cachedPlayer) {
+        //     console.log(`Player for guild ${player.guildId} retrieved from cache for destruction.`);
+        // }
+
+        // Remove player data from cache
+        removePlayerFromCache(player.guildId);
+        // console.log(`Player for guild ${player.guildId} removed from cache.`);
     })
     .on("playerDisconnect", (player, voiceChannelId) => {
         //logPlayer(client, player, "Player disconnected the Voice Channel :: ", voiceChannelId);
@@ -105,7 +105,16 @@ module.exports = async (client) => {
         //logPlayer(client, player, "Player socket got closed from lavalink :: ", payload);
     })
     .on("playerUpdate", (player) => {
-        // use this event to update the player in your cache if you want to save the player's data(s) externally!
+        // Log the player object to inspect its properties
+        // console.log("Player object:", player);
+
+        // Use guildId as the unique identifier for caching
+        if (player && player.guildId) {
+            playerCache.set(player.guildId, player);
+            // console.log(`Player for guild ${player.guildId} updated in cache.`);
+        } else {
+            console.error("Player guildId is undefined. Cannot update cache.");
+        }
     })
     .on("playerMuteChange", (player, selfMuted, serverMuted) => {
         // logPlayer(client, player, "INFO: playerMuteChange", { selfMuted, serverMuted });
@@ -169,31 +178,48 @@ module.exports = async (client) => {
     });
 
     client.lavalink.on("trackStart", async (player, track) => {
-        const avatarURL = track?.requester?.avatar || undefined;
-
         //logPlayer(client, player, "Started Playing :: ", track?.info?.title, "QUEUE:", player.queue.tracks.map(v => v.info.title));
-
+        const avatarURL = track?.requester?.avatar || undefined;
+        const trackDuration = track?.info?.duration || 0;
+    
         const embeds = [
             new EmbedBuilder()
-            .setColor("Blurple")
-            .setTitle(`🎶 ${track?.info?.title}`.substring(0, 256))
-            .setThumbnail(track?.info?.artworkUrl || track?.pluginInfo?.artworkUrl || null)
-            .setDescription(
-                [
-                    `> - **Author:** ${track?.info?.author}`,
-                    `> - **Duration:** ${formatMS_HHMMSS(track?.info?.duration || 0)} | Ends <t:${Math.floor((Date.now() + (track?.info?.duration || 0)) / 1000)}:R>`,
-                    `> - **Source:** ${track?.info?.sourceName}`,
-                    `> - **Requester:** <@${track?.requester?.id}>`,
-                    track?.pluginInfo?.clientData?.fromAutoplay ? `> *From Autoplay* ✅` : undefined
-                ].filter(v => typeof v === "string" && v.length).join("\n").substring(0, 4096)
-            )
-            .setFooter({
-                text: `Requested by ${track?.requester?.username}`,
-                iconURL: /^https?:\/\//.test(avatarURL || "") ? avatarURL : undefined,
-            })
-            .setTimestamp()
+                .setColor("Blurple")
+                .setTitle(`🎶 ${track?.info?.title}`.substring(0, 256))
+                .setThumbnail(track?.info?.artworkUrl || track?.pluginInfo?.artworkUrl || null)
+                .setDescription(
+                    [
+                        `🎤 **Author:** ${track?.info?.author}`,
+                        `⏱️ **Duration:** ${formatMS_HHMMSS(trackDuration)} **|** 🕒 **Ends:** <t:${Math.floor(Date.now() / 1000) + Math.floor(trackDuration / 1000)}:R>`,
+                        `🌐 **Source:** ${track?.info?.sourceName}`,
+                        `🙋‍♂️ **Requested by:** <@${track?.requester?.id}>`,
+                        track?.pluginInfo?.clientData?.fromAutoplay ? `✅ *From Autoplay*` : undefined
+                    ].filter(v => typeof v === "string" && v.length).join("\n").substring(0, 4096)
+                )
+                .setFooter({
+                    text: `Requested by ${track?.requester?.username}`,
+                    iconURL: /^https?:\/\//.test(avatarURL || "") ? avatarURL : undefined,
+                })
+                .setTimestamp()
         ];
-        if(track?.info?.uri && /^https?:\/\//.test(track?.info?.uri)) embeds[0].setURL(track.info.uri)
+
+        if (track?.info?.uri && /^https?:\/\//.test(track?.info?.uri)) embeds[0].setURL(track.info.uri);
+
+        const buttons = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder()
+                    .setCustomId('pause_resume')
+                    .setLabel(player.paused ? 'Resume' : 'Pause')
+                    .setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder()
+                    .setCustomId('skip')
+                    .setLabel('Skip')
+                    .setStyle(ButtonStyle.Primary),
+                new ButtonBuilder()
+                    .setCustomId('stop')
+                    .setLabel('Stop')
+                    .setStyle(ButtonStyle.Danger)
+            );
 
         const channel = client.channels.cache.get(player.textChannelId);
         if (channel) {
@@ -203,18 +229,28 @@ module.exports = async (client) => {
                     message = await channel.messages.fetch(player.currentTrackMessageId).catch(() => null);
                 }
                 if (message && message.editable) {
-                    await message.edit({ embeds });
+                    await message.edit({ embeds, components: [buttons] });
                 } else {
-                    message = await sendPlayerMessage(client, player, { embeds });
+                    message = await sendPlayerMessage(client, player, { embeds, components: [buttons] }, false);
                     player.currentTrackMessageId = message.id; // Store the message ID
                 }
             } catch (error) {
                 console.error("Failed to handle track start message:", error);
             }
         }
+        
+
     })
     .on("trackEnd", async (player, track, payload) => {
         // logPlayer(client, player, "Finished Playing :: ", track?.info?.title);
+        sendPlayerMessage(client, player, {
+            embeds: [
+                new EmbedBuilder()
+                .setColor("Red")
+                .setTitle("🛑 Track Ended")
+                .setTimestamp()
+            ]
+        }, true);
     })
     .on("trackError", async (player, track, payload) => {
         logPlayer(client, player, "Errored while Playing :: ", track?.info?.title, " :: ERROR DATA :: ", payload)
@@ -225,6 +261,7 @@ module.exports = async (client) => {
     .on("queueEnd", async (player, track, payload) => {
         //logPlayer(client, player, "No more tracks in the queue, after playing :: ", track?.info?.title || track)
         // Delete the last track's message
+        player.disconnect();
         if (player.currentTrackMessageId) {
             const channel = client.channels.cache.get(player.textChannelId);
             if (channel) {
@@ -244,7 +281,7 @@ module.exports = async (client) => {
                 .setTitle("❌ Queue Ended")
                 .setTimestamp()
             ]
-        });
+        }, true);
     });
 
     function logPlayer(client, player, ...messages) {
@@ -258,17 +295,31 @@ module.exports = async (client) => {
         return;
     }
 
-    async function sendPlayerMessage(client, player, messageData) {
+    async function sendPlayerMessage(client, player, messageData, autoDelete = true) {
         const channel = client.channels.cache.get(player.textChannelId);
-        if(!channel) return;
+        if (!channel) return;
 
         const message = await channel.send(messageData);
-        setTimeout(() => {
-            message.delete().catch(console.error);
-        }, 3000);
+
+        if (autoDelete) {
+            setTimeout(() => {
+                message.delete().catch(console.error);
+            }, 3000);
+        }
 
         return message;
     }
+
+    // Function to retrieve player data from cache
+    function getPlayerFromCache(guildId) {
+        return playerCache.get(guildId);
+    }
+
+    // Function to remove player data from cache if needed
+    function removePlayerFromCache(guildId) {
+        playerCache.delete(guildId);
+    }
+
     // Make the server listen on the specified port
     server.listen(2067, () => {});
 };
