@@ -3,6 +3,7 @@ const MongoUtilities = require('../utils/db'); // Import the class directly
 const createInterface = require('../utils/createInterface'); // Import the function
 const { formatMS_HHMMSS } = require("../utils/time");
 const http = require('http');
+const { FilterBuilder } = require('lavalink-client');
 
 const messagesMap = new Map();
 const playerCache = new Map();
@@ -82,9 +83,8 @@ module.exports = async (client) => {
     });
 
     client.lavalink.on("playerCreate", (player) => {
-        // Check if the player can send filters
-        if (player.node && player.node.send) {
-            const equalizerBands = [
+        const filterBuilder = new FilterBuilder()
+            .setEqualizer([
                 { band: 0, gain: 0.5 },  // 25Hz - Sub-bass (boosted)
                 { band: 1, gain: 0.45 }, // 40Hz - Bass (boosted)
                 { band: 2, gain: 0.4 },  // 63Hz - Bass (boosted)
@@ -100,18 +100,12 @@ module.exports = async (client) => {
                 { band: 12, gain: 0.3 }, // 6.3kHz - Brilliance
                 { band: 13, gain: 0.35 },// 10kHz - Brilliance
                 { band: 14, gain: 0.4 }  // 16kHz - Brilliance
-            ];
+            ])
+            .setVolume(1.0); // Set volume to 100%
 
-            player.node.send({
-                op: 'filters',
-                guildId: player.guildId,
-                equalizer: equalizerBands
-            });
+        player.setFilters(filterBuilder.build());
 
-            console.log(`Equalizer applied to player for guild ${player.guildId}.`);
-        } else {
-            console.error("Cannot send filters to player.");
-        }
+        // console.log(`Filters applied to player for guild ${player.guildId}.`);
     })
     .on("playerDestroy", async(player, reason) => {
         //logPlayer(client, player, "Player got Destroyed :: ");
