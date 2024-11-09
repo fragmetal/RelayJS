@@ -82,8 +82,8 @@ module.exports = async (client) => {
     });
 
     client.lavalink.on("playerCreate", (player) => {
-        // Check if the player has a method to set filters or equalizer
-        if (player.filters && typeof player.filters === 'function') {
+        // Check if the player can send filters
+        if (player.node && player.node.send) {
             const equalizerBands = [
                 { band: 0, gain: 0.5 },  // 25Hz - Sub-bass (boosted)
                 { band: 1, gain: 0.45 }, // 40Hz - Bass (boosted)
@@ -102,10 +102,15 @@ module.exports = async (client) => {
                 { band: 14, gain: 0.4 }  // 16kHz - Brilliance
             ];
 
-            player.filters({ equalizer: equalizerBands });
-            // console.log(`Equalizer applied to player for guild ${player.guildId}.`);
+            player.node.send({
+                op: 'filters',
+                guildId: player.guildId,
+                equalizer: equalizerBands
+            });
+
+            console.log(`Equalizer applied to player for guild ${player.guildId}.`);
         } else {
-            console.error("Equalizer method not available on player.");
+            console.error("Cannot send filters to player.");
         }
     })
     .on("playerDestroy", async(player, reason) => {
