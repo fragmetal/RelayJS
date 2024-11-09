@@ -84,27 +84,35 @@ module.exports = async (client) => {
     client.lavalink.on("playerCreate", (player) => {
         //logPlayer(client, player, "Created a Player :: ");
     })
-    .on("playerDestroy", (player, reason) => {
+    .on("playerDestroy", async(player, reason) => {
         //logPlayer(client, player, "Player got Destroyed :: ");
-        // const cachedPlayer = getPlayerFromCache(player.guildId);
-        // if (cachedPlayer) {
-        //     console.log(`Player for guild ${player.guildId} retrieved from cache for destruction.`);
-        // }
-
+        player.disconnect();
+        if (player.currentTrackMessageId) {
+            const channel = client.channels.cache.get(player.textChannelId);
+            if (channel) {
+                try {
+                    const message = await channel.messages.fetch(player.currentTrackMessageId);
+                    if (message)
+                        await message.delete();
+                } catch (error) {
+                    console.error("Failed to delete message:", error);
+                }
+            }
+        }
         // Remove player data from cache
-        removePlayerFromCache(player.guildId);
+        playerCache.delete(player.guildId);
         // console.log(`Player for guild ${player.guildId} removed from cache.`);
     })
-    .on("playerDisconnect", (player, voiceChannelId) => {
+    .on("playerDisconnect", async (player, voiceChannelId) => {
         //logPlayer(client, player, "Player disconnected the Voice Channel :: ", voiceChannelId);
     })
-    .on("playerMove", (player, oldVoiceChannelId, newVoiceChannelId) => {
+    .on("playerMove", async (player, oldVoiceChannelId, newVoiceChannelId) => {
         //logPlayer(client, player, "Player moved from Voice Channel :: ", oldVoiceChannelId, " :: To ::", newVoiceChannelId);
     })
-    .on("playerSocketClosed", (player, payload) => {
+    .on("playerSocketClosed", async (player, payload) => {
         //logPlayer(client, player, "Player socket got closed from lavalink :: ", payload);
     })
-    .on("playerUpdate", (player) => {
+    .on("playerUpdate", async (player) => {
         // Log the player object to inspect its properties
         // console.log("Player object:", player);
 
@@ -116,7 +124,7 @@ module.exports = async (client) => {
             console.error("Player guildId is undefined. Cannot update cache.");
         }
     })
-    .on("playerMuteChange", (player, selfMuted, serverMuted) => {
+    .on("playerMuteChange", async (player, selfMuted, serverMuted) => {
         // logPlayer(client, player, "INFO: playerMuteChange", { selfMuted, serverMuted });
         if(serverMuted) {
             player.set("paused_of_servermute", true);
@@ -125,10 +133,10 @@ module.exports = async (client) => {
             if(player.get("paused_of_servermute") && player.paused) player.resume();
         }
     })
-    .on("playerDeafChange", (player, selfDeaf, serverDeaf) => {
+    .on("playerDeafChange", async (player, selfDeaf, serverDeaf) => {
         //logPlayer(client, player, "INFO: playerDeafChange");
     })
-    .on("playerSuppressChange", (player, suppress) => {
+    .on("playerSuppressChange", async (player, suppress) => {
         //logPlayer(client, player, "INFO: playerSuppressChange");
     })
     .on("playerQueueEmptyStart", async (player, delayMs) => {
@@ -141,7 +149,7 @@ module.exports = async (client) => {
         });
         if(msg) messagesMap.set(`${player.guildId}_queueempty`, msg);
     })
-    .on("playerQueueEmptyEnd", (player) => {
+    .on("playerQueueEmptyEnd", async (player) => {
         //logPlayer(client, player, "INFO: playerQueueEmptyEnd");
         const msg = messagesMap.get(`${player.guildId}_queueempty`);
         if(msg?.editable) {
@@ -153,7 +161,7 @@ module.exports = async (client) => {
             })
         }
     })
-    .on("playerQueueEmptyCancel", (player) => {
+    .on("playerQueueEmptyCancel", async (player) => {
         //logPlayer(client, player, "INFO: playerQueueEmptyEnd");
         const msg = messagesMap.get(`${player.guildId}_queueempty`);
         if(msg?.editable) {
@@ -165,13 +173,13 @@ module.exports = async (client) => {
             })
         }
     })
-    .on("playerVoiceLeave", (player, userId) => {
+    .on("playerVoiceLeave", async (player, userId) => {
        // logPlayer(client, player, "INFO: playerVoiceLeave: ", userId);
     })
-    .on("playerVoiceJoin", (player, userId) => {
+    .on("playerVoiceJoin", async (player, userId) => {
        // logPlayer(client, player, "INFO: playerVoiceJoin: ", userId);
     })
-    .on("debug", (eventKey, eventData) => {
+    .on("debug", async (eventKey, eventData) => {
         // if(eventKey === DebugEvents.NoAudioDebug && eventData.message === "Manager is not initiated yet") return;
         // if(eventKey === DebugEvents.PlayerUpdateSuccess && eventData.state === "log") return;
         return;
@@ -243,14 +251,14 @@ module.exports = async (client) => {
     })
     .on("trackEnd", async (player, track, payload) => {
         // logPlayer(client, player, "Finished Playing :: ", track?.info?.title);
-        sendPlayerMessage(client, player, {
-            embeds: [
-                new EmbedBuilder()
-                .setColor("Red")
-                .setTitle("🛑 Track Ended")
-                .setTimestamp()
-            ]
-        }, true);
+        // sendPlayerMessage(client, player, {
+        //     embeds: [
+        //         new EmbedBuilder()
+        //         .setColor("Red")
+        //         .setTitle("🛑 Track Ended")
+        //         .setTimestamp()
+        //     ]
+        // }, true);
     })
     .on("trackError", async (player, track, payload) => {
         logPlayer(client, player, "Errored while Playing :: ", track?.info?.title, " :: ERROR DATA :: ", payload)
@@ -260,20 +268,6 @@ module.exports = async (client) => {
     })
     .on("queueEnd", async (player, track, payload) => {
         //logPlayer(client, player, "No more tracks in the queue, after playing :: ", track?.info?.title || track)
-        // Delete the last track's message
-        player.disconnect();
-        if (player.currentTrackMessageId) {
-            const channel = client.channels.cache.get(player.textChannelId);
-            if (channel) {
-                try {
-                    const message = await channel.messages.fetch(player.currentTrackMessageId);
-                    if (message)
-                        await message.delete();
-                } catch (error) {
-                    console.error("Failed to delete message:", error);
-                }
-            }
-        }
         sendPlayerMessage(client, player, {
             embeds: [
                 new EmbedBuilder()
@@ -308,16 +302,6 @@ module.exports = async (client) => {
         }
 
         return message;
-    }
-
-    // Function to retrieve player data from cache
-    function getPlayerFromCache(guildId) {
-        return playerCache.get(guildId);
-    }
-
-    // Function to remove player data from cache if needed
-    function removePlayerFromCache(guildId) {
-        playerCache.delete(guildId);
     }
 
     // Make the server listen on the specified port

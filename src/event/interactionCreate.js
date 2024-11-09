@@ -66,11 +66,28 @@ module.exports = async (client, interaction) => {
         // Handle other button interactions (e.g., limit, privacy, etc.)
         switch (interaction.customId) {
             case 'skip':
-                player.stop();
-                return interaction.reply({ content: 'Track skipped.', ephemeral: true });
+                if (player && typeof player.skip === 'function') {
+                    player.skip();
+                    await interaction.reply({ content: 'Track skipped.', ephemeral: true });
+        
+                } else {
+                    await interaction.reply({ content: 'No more tracks to skip.', ephemeral: true });
+                }
+                setTimeout(() => {
+                    interaction.deleteReply().catch(console.error);
+                }, 3000);
+                break;
             case 'stop':
-                player.destroy();
-                return interaction.reply({ content: 'Player stopped and destroyed.', ephemeral: true });
+                if (player && typeof player.destroy === 'function') {
+                    player.destroy(); // Use destroy if stop is not available
+                    await interaction.reply({ content: 'Player stopped and destroyed.', ephemeral: true });
+                } else {
+                    await interaction.reply({ content: 'Unable to stop player. Player not found or method not available.', ephemeral: true });
+                }
+                setTimeout(() => {
+                    interaction.deleteReply().catch(console.error);
+                }, 3000);
+                break;
             case 'pause_resume':
                 if (!interaction.deferred && !interaction.replied) {
                     await interaction.deferUpdate();
