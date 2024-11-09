@@ -82,7 +82,29 @@ module.exports = async (client) => {
     });
 
     client.lavalink.on("playerCreate", (player) => {
-        //logPlayer(client, player, "Created a Player :: ");
+        // Define an equalizer configuration for bass boost, enhanced treble, and standout mids
+        const equalizerBands = [
+            { band: 0, gain: 0.3 },  // 25 Hz - Bass boost
+            { band: 1, gain: 0.25 }, // 40 Hz - Bass boost
+            { band: 2, gain: 0.2 },  // 63 Hz - Bass boost
+            { band: 3, gain: 0.15 }, // 100 Hz - Bass boost
+            { band: 4, gain: 0.1 },  // 160 Hz - Mids
+            { band: 5, gain: 0.05 }, // 250 Hz - Mids
+            { band: 6, gain: 0.0 },  // 400 Hz - Mids
+            { band: 7, gain: 0.05 }, // 630 Hz - Mids
+            { band: 8, gain: 0.1 },  // 1 kHz - Mids
+            { band: 9, gain: 0.15 }, // 1.6 kHz - Treble
+            { band: 10, gain: 0.2 }, // 2.5 kHz - Treble
+            { band: 11, gain: 0.25 },// 4 kHz - Treble
+            { band: 12, gain: 0.3 }, // 6.3 kHz - Treble
+            { band: 13, gain: 0.35 },// 10 kHz - Treble
+            { band: 14, gain: 0.4 }  // 16 kHz - Treble
+        ];
+
+        // Apply the equalizer to the player
+        player.setEqualizer(...equalizerBands);
+
+        //console.log(`Equalizer applied to player for guild ${player.guildId}.`);
     })
     .on("playerDestroy", async(player, reason) => {
         //logPlayer(client, player, "Player got Destroyed :: ");
