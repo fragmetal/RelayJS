@@ -54,16 +54,14 @@ module.exports = async (client, interaction) => {
     } else if (interaction.isButton()) {
         const player = client.lavalink.getPlayer(interaction.guildId);
         if (!player) return interaction.reply({ content: 'No player found.', ephemeral: true });
-
         const voiceChannelData = await mongoUtils.fetchVoiceChannelData(interaction.member);
         const tempChannel = voiceChannelData.tempChannels.find(channel => channel.TempChannel === voiceChannel.id);
 
         switch (interaction.customId) {
             case 'skip':
-                if (player && typeof player.skip === 'function') {
-                    player.skip();
+                if (player && player.queue.tracks.length > 0) {
+                    await player.skip();
                     await interaction.reply({ content: 'Track skipped.', ephemeral: true });
-        
                 } else {
                     await interaction.reply({ content: 'No more tracks to skip.', ephemeral: true });
                 }
@@ -73,7 +71,7 @@ module.exports = async (client, interaction) => {
                 break;
             case 'stop':
                 if (player && typeof player.destroy === 'function') {
-                    player.destroy(); // Use destroy if stop is not available
+                    await player.destroy(); // Use destroy if stop is not available
                     await interaction.reply({ content: 'Player stopped and destroyed.', ephemeral: true });
                 } else {
                     await interaction.reply({ content: 'Unable to stop player. Player not found or method not available.', ephemeral: true });

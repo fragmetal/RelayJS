@@ -82,25 +82,25 @@ module.exports = async (client) => {
     });
 
     client.lavalink.on("playerCreate", (player) => {
-        if (player && player.guildId) {
-            playerCache.set(player.guildId, { player, loop: false });
-        } else {
-            console.error("Player guildId is undefined. Cannot update cache.");
-        }
+
     })
     .on("playerDestroy", async(player, reason) => {
-        // if (player.currentTrackMessageId) {
-        //     const channel = client.channels.cache.get(player.textChannelId);
-        //     if (channel) {
-        //         try {
-        //             const message = await channel.messages.fetch(player.currentTrackMessageId);
-        //             if (message)
-        //                 await message.delete();
-        //         } catch (error) {
-        //             console.error("Failed to delete message:", error);
-        //         }
-        //     }
-        // }
+        if (player.currentTrackMessageId) {
+            const channel = client.channels.cache.get(player.textChannelId);
+            if (channel) {
+                try {
+                    const message = await channel.messages.fetch(player.currentTrackMessageId);
+                    if (message)
+                        await message.delete();
+                } catch (error) {
+                    if (error.code === 10008) {
+                        console.error("Message not found, it might have been deleted.");
+                    } else {
+                        console.error("Failed to delete message:", error);
+                    }
+                }
+            }
+        }
         playerCache.delete(player.guildId);
     })
     .on("playerDisconnect", async (player, voiceChannelId) => {
@@ -175,6 +175,11 @@ module.exports = async (client) => {
     })
     .on("playerVoiceJoin", async (player, userId) => {
        // logPlayer(client, player, "INFO: playerVoiceJoin: ", userId);
+        if (player && player.guildId) {
+            playerCache.set(player.guildId, { player, loop: false });
+        } else {
+            console.error("Player guildId is undefined. Cannot update cache.");
+        }
     })
     .on("debug", async (eventKey, eventData) => {
         // if(eventKey === DebugEvents.NoAudioDebug && eventData.message === "Manager is not initiated yet") return;
@@ -256,7 +261,11 @@ module.exports = async (client) => {
                     player.currentTrackMessageId = message.id; // Store the message ID
                 }
             } catch (error) {
-                console.error("Failed to handle track start message:", error);
+                if (error.code === 10008) {
+                    console.error("Message not found, it might have been deleted.");
+                } else {
+                    console.error("Failed to handle track start message:", error);
+                }
             }
         }
         
@@ -270,7 +279,7 @@ module.exports = async (client) => {
             await player.queue.add(track);
         }
 
-        if (player.queue.size > 0) {
+        if (player.queue.tracks.length > 0) {
             // Play the next track in the queue
             await player.play();
         } else {
