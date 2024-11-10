@@ -88,7 +88,7 @@ module.exports = async (client) => {
             console.error("Player guildId is undefined. Cannot update cache.");
         }
     })
-    .on("playerDestroy", async(player, reason) => {
+    .on("playerDestroy", async (player, reason) => {
         const channel = client.channels.cache.get(player.textChannelId);
         if (channel) {
             try {
@@ -96,15 +96,18 @@ module.exports = async (client) => {
                 if (player.currentTrackMessageId) {
                     message = await channel.messages.fetch(player.currentTrackMessageId).catch(() => null);
                 }
+
                 if (message && message.editable) {
-                    await message.edit({ embeds, components: [buttonsRow1, buttonsRow2] });
-                } else {
-                    message = await sendPlayerMessage(client, player, { embeds, components: [buttonsRow1, buttonsRow2] }, false);
-                    player.currentTrackMessageId = message.id; // Store the message ID
-                }
+                    await message.delete().catch(console.error);
+                } //    else {
+                    //message = await sendPlayerMessage(client, player, {}, false);
+                    //if (message) await message.delete().catch(console.error);
+                //}
+
+                // Delete the currentTrackMessageId
+                player.currentTrackMessageId = null; // or undefined
             } catch (error) {
                 if (error.code === 10008) {
-                    // Log the error less frequently or only once
                     console.error("Message not found, it might have been deleted.");
                 } else {
                     console.error("Failed to handle track start message:", error);
@@ -190,9 +193,7 @@ module.exports = async (client) => {
         // if(eventKey === DebugEvents.NoAudioDebug && eventData.message === "Manager is not initiated yet") return;
         // if(eventKey === DebugEvents.PlayerUpdateSuccess && eventData.state === "log") return;
         return;
-    });
-
-    client.lavalink.on("trackStart", async (player, track) => {
+    }).on("trackStart", async (player, track) => {
         //logPlayer(client, player, "Started Playing :: ", track?.info?.title, "QUEUE:", player.queue.tracks.map(v => v.info.title));
         const avatarURL = track?.requester?.avatar || undefined;
         const trackDuration = track?.info?.duration || 0;
