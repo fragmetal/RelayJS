@@ -254,25 +254,18 @@ module.exports = async (client) => {
 
             const channel = client.channels.cache.get(player.textChannelId);
             if (channel) {
-                try {
-                    let message;
-                    if (player.currentTrackMessageId) {
-                        message = await channel.messages.fetch(player.currentTrackMessageId).catch(() => null);
-                    }
-                    if (message && message.editable) {
-                        await message.edit({ embeds, components: [buttonsRow1, buttonsRow2] });
-                    } else {
-                        message = await sendPlayerMessage(client, player, { embeds, components: [buttonsRow1, buttonsRow2] }, false);
-                        player.currentTrackMessageId = message.id; // Store the message ID
-                    }
-                } catch (error) {
-                    if (error.code === 10008) {
-                        // Log the error less frequently or only once
-                        console.error("Message not found, it might have been deleted.");
-                    } else {
-                        console.error("Failed to handle track start message:", error);
-                    }
+            
+                let message;
+                if (player.currentTrackMessageId) {
+                    message = await channel.messages.fetch(player.currentTrackMessageId).catch(() => null);
                 }
+                if (message && message.editable) {
+                    await message.edit({ embeds, components: [buttonsRow1, buttonsRow2] });
+                } else {
+                    message = await sendPlayerMessage(client, player, { embeds, components: [buttonsRow1, buttonsRow2] }, false);
+                    player.currentTrackMessageId = message.id; // Store the message ID
+                }
+        
             }
         
 
