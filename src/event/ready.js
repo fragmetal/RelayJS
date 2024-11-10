@@ -278,10 +278,7 @@ module.exports = async (client) => {
             await player.queue.add(track);
         }
 
-        if (player.queue.tracks.length > 0) {
-            // Play the next track in the queue
-            await player.play();
-        } else {
+        if (!player.queue.tracks.length) {
             // If the queue is empty, disconnect the player
             await player.disconnect();
             if (player.currentTrackMessageId) {
