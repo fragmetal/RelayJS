@@ -341,7 +341,7 @@ module.exports = async (client, interaction) => {
                 const loopMessage = newLoopState ? 'Looping the playlist is now enabled.' : 'Looping the playlist is now disabled.';
                 await interaction.editReply({ content: loopMessage });
                 // Update the button label to reflect the new state
-                const buttonsRow = new ActionRowBuilder()
+                const buttonsRow1 = new ActionRowBuilder()
                     .addComponents(
                         new ButtonBuilder()
                             .setCustomId('pause_resume')
@@ -362,14 +362,18 @@ module.exports = async (client, interaction) => {
                         new ButtonBuilder()
                             .setCustomId('equalizers')
                             .setLabel('Equalizers')
-                            .setStyle(ButtonStyle.Secondary),
+                            .setStyle(ButtonStyle.Secondary)
+                    );
+
+                const buttonsRow2 = new ActionRowBuilder()
+                    .addComponents(
                         new ButtonBuilder()
                             .setCustomId('loop_playlist')
                             .setLabel(newLoopState ? 'Repeat' : 'No Repeat')
                             .setStyle(ButtonStyle.Secondary)
                     );
 
-                await interaction.editReply({ components: [buttonsRow] });
+                await interaction.editReply({ components: [buttonsRow1, buttonsRow2] });
                 break;
             case 'limit':
                 if (!voiceChannel) {

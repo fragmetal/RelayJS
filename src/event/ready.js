@@ -210,7 +210,7 @@ module.exports = async (client) => {
 
         if (track?.info?.uri && /^https?:\/\//.test(track?.info?.uri)) embeds[0].setURL(track.info.uri);
 
-        const buttons = new ActionRowBuilder()
+        const buttonsRow1 = new ActionRowBuilder()
             .addComponents(
                 new ButtonBuilder()
                     .setCustomId('pause_resume')
@@ -231,7 +231,11 @@ module.exports = async (client) => {
                 new ButtonBuilder()
                     .setCustomId('equalizers')
                     .setLabel('Equalizers')
-                    .setStyle(ButtonStyle.Secondary),
+                    .setStyle(ButtonStyle.Secondary)
+            );
+
+        const buttonsRow2 = new ActionRowBuilder()
+            .addComponents(
                 new ButtonBuilder()
                     .setCustomId('loop_playlist')
                     .setLabel(player.loop ? 'Repeat' : 'No Repeat')
@@ -246,9 +250,9 @@ module.exports = async (client) => {
                     message = await channel.messages.fetch(player.currentTrackMessageId).catch(() => null);
                 }
                 if (message && message.editable) {
-                    await message.edit({ embeds, components: [buttons] });
+                    await message.edit({ embeds, components: [buttonsRow1, buttonsRow2] });
                 } else {
-                    message = await sendPlayerMessage(client, player, { embeds, components: [buttons] }, false);
+                    message = await sendPlayerMessage(client, player, { embeds, components: [buttonsRow1, buttonsRow2] }, false);
                     player.currentTrackMessageId = message.id; // Store the message ID
                 }
             } catch (error) {
