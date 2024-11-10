@@ -264,10 +264,17 @@ module.exports = async (client) => {
     })
     .on("trackEnd", async (player, track, payload) => {
         const playerData = playerCache.get(player.guildId);
+        
         if (playerData && playerData.loop) {
+            // Re-add the track to the queue if looping is enabled
             player.queue.add(track);
+        }
+
+        if (player.queue.size > 0) {
+            // Play the next track in the queue
             player.play();
         } else {
+            // If the queue is empty, disconnect the player
             player.disconnect();
             if (player.currentTrackMessageId) {
                 const channel = client.channels.cache.get(player.textChannelId);
