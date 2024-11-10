@@ -89,18 +89,18 @@ module.exports = async (client) => {
         }
     })
     .on("playerDestroy", async(player, reason) => {
-        if (player.currentTrackMessageId) {
-            const channel = client.channels.cache.get(player.textChannelId);
-            if (channel) {
-                try {
-                    const message = await channel.messages.fetch(player.currentTrackMessageId);
-                    if (message)
-                        await message.delete();
-                } catch (error) {
-                    console.error("Failed to delete message:", error);
-                }
-            }
-        }
+        // if (player.currentTrackMessageId) {
+        //     const channel = client.channels.cache.get(player.textChannelId);
+        //     if (channel) {
+        //         try {
+        //             const message = await channel.messages.fetch(player.currentTrackMessageId);
+        //             if (message)
+        //                 await message.delete();
+        //         } catch (error) {
+        //             console.error("Failed to delete message:", error);
+        //         }
+        //     }
+        // }
         playerCache.delete(player.guildId);
     })
     .on("playerDisconnect", async (player, voiceChannelId) => {

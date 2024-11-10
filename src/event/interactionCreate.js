@@ -338,7 +338,7 @@ module.exports = async (client, interaction) => {
                 const newLoopState = !currentLoopState;
                 playerCache.set(interaction.guildId, { ...playerCache.get(interaction.guildId), loop: newLoopState });
 
-                const loopMessage = newLoopState ? 'Looping the playlist is now enabled.' : 'Looping the playlist is now disabled.';
+                const loopMessage = newLoopState ? '✅ Looping the playlist is now enabled.' : '✅ Looping the playlist is now disabled.';
                 await interaction.editReply({ content: loopMessage });
                 // Update the button label to reflect the new state
                 const buttonsRow1 = new ActionRowBuilder()
