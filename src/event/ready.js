@@ -267,8 +267,7 @@ module.exports = async (client) => {
                 }
         
             }
-        
-
+        return;
     })
     .on("trackEnd", async (player, track, payload) => {
         const playerData = playerCache.get(player.guildId);
