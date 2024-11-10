@@ -82,7 +82,11 @@ module.exports = async (client) => {
     });
 
     client.lavalink.on("playerCreate", (player) => {
-
+        if (player && player.guildId) {
+            playerCache.set(player.guildId, { player, loop: false });
+        } else {
+            console.error("Player guildId is undefined. Cannot update cache.");
+        }
     })
     .on("playerDestroy", async(player, reason) => {
         const channel = client.channels.cache.get(player.textChannelId);
@@ -181,11 +185,6 @@ module.exports = async (client) => {
     })
     .on("playerVoiceJoin", async (player, userId) => {
        // logPlayer(client, player, "INFO: playerVoiceJoin: ", userId);
-        if (player && player.guildId) {
-            playerCache.set(player.guildId, { player, loop: false });
-        } else {
-            console.error("Player guildId is undefined. Cannot update cache.");
-        }
     })
     .on("debug", async (eventKey, eventData) => {
         // if(eventKey === DebugEvents.NoAudioDebug && eventData.message === "Manager is not initiated yet") return;
