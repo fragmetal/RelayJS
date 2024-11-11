@@ -1,6 +1,6 @@
 /*Power*/
 module.exports = {
-    botMode: 'tester', // live or tester
+    botMode: 'live', // live or tester
     botNode: 'hatry4', // prodnode or localnode or hatry4
     mongoURI: `mongodb+srv://sadri:sadri@cluster0.eyfridx.mongodb.net/`,
     dbName: `Relay`
