@@ -2,7 +2,6 @@ node_modules
 logs
 power.js
 pedro.js
-config.js
 .cache
 *.zip
 *.jar
