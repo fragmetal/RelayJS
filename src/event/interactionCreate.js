@@ -1,12 +1,10 @@
 const { Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, TextInputBuilder, ModalBuilder, TextInputStyle, StringSelectMenuBuilder, PermissionFlagsBits, ComponentType } = require('discord.js');
 const MongoUtilities = require('../utils/db');
 const EQList = require('../utils/EQList');
-// Initialize cooldowns collection
 const cooldowns = new Collection();
 
 module.exports = async (client, interaction) => {
     const mongoUtils = new MongoUtilities(client);
-    const voiceChannel = interaction.member.voice.channel;
 
     if (interaction.isCommand()) {
         if (!interaction.guild) return;
@@ -53,12 +51,14 @@ module.exports = async (client, interaction) => {
         await command.execute(interaction);
     } else if (interaction.isButton()) {
         const player = client.lavalink.getPlayer(interaction.guildId);
-        if (!player) return interaction.reply({ content: 'No player found.', ephemeral: true });
-        const voiceChannelData = await mongoUtils.fetchVoiceChannelData(interaction.member);
-        const tempChannel = voiceChannelData.tempChannels.find(channel => channel.TempChannel === voiceChannel.id);
+        const voiceChannel = interaction.member.voice.channel; // Check if the user is in a voice channel
+        const voiceChannelData = voiceChannel ? await mongoUtils.fetchVoiceChannelData(interaction.member) : null;
+        const tempChannel = voiceChannelData ? voiceChannelData.tempChannels.find(channel => channel.TempChannel === voiceChannel.id) : null;
 
         switch (interaction.customId) {
             case 'skip':
+                if (!player) return interaction.reply({ content: 'No player found.', ephemeral: true });
+                if (!voiceChannel) return interaction.reply({ content: 'You are not in a voice channel.', ephemeral: true });
                 if (player && player.queue.tracks.length > 0) {
                     await player.skip();
                     await interaction.reply({ content: 'Track skipped.', ephemeral: true });
@@ -70,6 +70,8 @@ module.exports = async (client, interaction) => {
                 }, 3000);
                 break;
             case 'stop':
+                if (!player) return interaction.reply({ content: 'No player found.', ephemeral: true });
+                if (!voiceChannel) return interaction.reply({ content: 'You are not in a voice channel.', ephemeral: true });
                 if (player && typeof player.destroy === 'function') {
                     await player.destroy(); // Use destroy if stop is not available
                     await interaction.reply({ content: 'Player stopped and destroyed.', ephemeral: true });
@@ -81,6 +83,8 @@ module.exports = async (client, interaction) => {
                 }, 3000);
                 break;
             case 'pause_resume':
+                if (!player) return interaction.reply({ content: 'No player found.', ephemeral: true });
+                if (!voiceChannel) return interaction.reply({ content: 'You are not in a voice channel.', ephemeral: true });
                 if (!interaction.deferred && !interaction.replied) {
                     await interaction.deferUpdate();
                 }
@@ -118,6 +122,8 @@ module.exports = async (client, interaction) => {
 
                 return interaction.editReply({ components: [updatedButtons] });
             case 'filters':
+                if (!player) return interaction.reply({ content: 'No player found.', ephemeral: true });
+                if (!voiceChannel) return interaction.reply({ content: 'You are not in a voice channel.', ephemeral: true });
                 const filterOptions = [
                     { label: 'Clear Filters', value: 'clear' },
                     { label: 'Nightcore', value: 'nightcore' },
@@ -220,6 +226,8 @@ module.exports = async (client, interaction) => {
                 });
                 break;
             case 'equalizers':
+                if (!player) return interaction.reply({ content: 'No player found.', ephemeral: true });
+                if (!voiceChannel) return interaction.reply({ content: 'You are not in a voice channel.', ephemeral: true });
                 const equalizerOptions = [
                     { label: 'Clear Equalizers', value: 'clear' },
                     { label: 'Bassboost (High)', value: 'bass_high' },
@@ -324,6 +332,8 @@ module.exports = async (client, interaction) => {
                 });
                 break;
             case 'loop_playlist':
+                if (!player) return interaction.reply({ content: 'No player found.', ephemeral: true });
+                if (!voiceChannel) return interaction.reply({ content: 'You are not in a voice channel.', ephemeral: true });
                 if (!interaction.deferred && !interaction.replied) {
                     await interaction.deferUpdate();
                 }
@@ -374,6 +384,14 @@ module.exports = async (client, interaction) => {
                 await interaction.editReply({ components: [buttonsRow1, buttonsRow2] });
                 break;
             case 'limit':
+                if (!voiceChannel) {
+                    await interaction.reply({ content: 'You are not in a voice channel.', ephemeral: true });
+                    setTimeout(() => {
+                        interaction.deleteReply().catch(console.error);
+                    }, 6000);
+                    return;
+                }
+                
                 if (!voiceChannel) {
                     await interaction.reply({ content: 'You are not in any temporary voice channel to perform this action.', ephemeral: true });
                     setTimeout(() => {
@@ -466,6 +484,14 @@ module.exports = async (client, interaction) => {
                 break;
                 
             case 'privacy':
+                if (!voiceChannel) {
+                    await interaction.reply({ content: 'You are not in a voice channel.', ephemeral: true });
+                    setTimeout(() => {
+                        interaction.deleteReply().catch(console.error);
+                    }, 6000);
+                    return;
+                }
+                
                 if (!voiceChannel) {
                     await interaction.reply({ content: 'You are not in any temporary voice channel to perform this action.', ephemeral: true });
                     setTimeout(() => {
@@ -594,6 +620,14 @@ module.exports = async (client, interaction) => {
                 break;
             case 'invite':
                 if (!voiceChannel) {
+                    await interaction.reply({ content: 'You are not in a voice channel.', ephemeral: true });
+                    setTimeout(() => {
+                        interaction.deleteReply().catch(console.error);
+                    }, 6000);
+                    return;
+                }
+                
+                if (!voiceChannel) {
                     await interaction.reply({ content: 'You are not in any temporary voice channel to perform this action.', ephemeral: true });
                     setTimeout(() => {
                         interaction.deleteReply().catch(console.error);
@@ -614,6 +648,14 @@ module.exports = async (client, interaction) => {
                 break;
             case 'kick':
                 if (!voiceChannel) {
+                    await interaction.reply({ content: 'You are not in a voice channel.', ephemeral: true });
+                    setTimeout(() => {
+                        interaction.deleteReply().catch(console.error);
+                    }, 6000);
+                    return;
+                }
+                
+                if (!voiceChannel) {
                     await interaction.reply({ content: 'You are not in any temporary voice channel to perform this action.', ephemeral: true });
                     setTimeout(() => {
                         interaction.deleteReply().catch(console.error);
@@ -633,6 +675,14 @@ module.exports = async (client, interaction) => {
                 }, 6000);
                 break;
             case 'claim':
+                if (!voiceChannel) {
+                    await interaction.reply({ content: 'You are not in a voice channel.', ephemeral: true });
+                    setTimeout(() => {
+                        interaction.deleteReply().catch(console.error);
+                    }, 6000);
+                    return;
+                }
+                
                 if (!voiceChannel) {
                     await interaction.reply({ content: 'You are not in any temporary voice channel to claim.', ephemeral: true });
                     setTimeout(() => {
@@ -678,6 +728,14 @@ module.exports = async (client, interaction) => {
                 break;
             case 'transfer':
                 if (!voiceChannel) {
+                    await interaction.reply({ content: 'You are not in a voice channel.', ephemeral: true });
+                    setTimeout(() => {
+                        interaction.deleteReply().catch(console.error);
+                    }, 6000);
+                    return;
+                }
+
+                if (!voiceChannel) {
                     await interaction.reply({ content: 'You are not in any temporary voice channel to perform this action.', ephemeral: true });
                     setTimeout(() => {
                         interaction.deleteReply().catch(console.error);
@@ -685,7 +743,6 @@ module.exports = async (client, interaction) => {
                     return;
                 }
 
-                // Fetch the tempChannel from your database or context
                 if (!tempChannel.TempChannel) {
                     await interaction.reply({ content: 'You do not own any temporary channel.', ephemeral: true });
                     setTimeout(() => {
@@ -762,7 +819,7 @@ module.exports = async (client, interaction) => {
                 break;
             case 'delete':
                 if (!voiceChannel) {
-                    await interaction.reply({ content: 'You are not in any temporary voice channel to perform this action.', ephemeral: true });
+                    await interaction.reply({ content: 'You are not in a voice channel.', ephemeral: true });
                     setTimeout(() => {
                         interaction.deleteReply().catch(console.error);
                     }, 6000);

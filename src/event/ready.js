@@ -126,12 +126,14 @@ module.exports = async (client) => {
         //logPlayer(client, player, "Player socket got closed from lavalink :: ", payload);
     })
     .on("playerUpdate", async (player) => {
-        // Log the player object to inspect its properties
-        // console.log("Player object:", player);
         const voiceChannel = client.channels.cache.get(player.voiceChannelId);
-        if (voiceChannel && voiceChannel.members.size === 1) {
-            player.destroy();
-            // console.log(`Bot disconnected from voice channel ${voiceChannel.id} as it was the only member.`);
+        if (voiceChannel && voiceChannel.members.size === 1 && voiceChannel.members.has(client.user.id)) {
+            try {
+                const connection = client.lavalink.getPlayer(player.guildId);
+                if(connection) await connection.destroy().catch(console.error);
+            } catch (error) {
+                console.error("Failed to disconnect player:", error);
+            }
         }
     })
     .on("playerMuteChange", async (player, selfMuted, serverMuted) => {
