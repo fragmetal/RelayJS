@@ -9,27 +9,6 @@ const playerCache = new Map();
 
 module.exports = async (client) => {
     const mongoUtils = new MongoUtilities(client); // Create an instance of MongoUtilities
-    const updateUptime = () => {
-        const uptime = process.uptime();
-        let uptimeString = '';
-    
-        if (uptime >= 24 * 60 * 60) {
-            const days = Math.floor(uptime / (24 * 60 * 60));
-            uptimeString += `${days} d `;
-        }
-        const hours = Math.floor((uptime % (24 * 60 * 60)) / (60 * 60));
-        if (hours > 0) {
-            uptimeString += `${hours} h `;
-        }
-        const minutes = Math.floor((uptime % (60 * 60)) / 60);
-        uptimeString += `${minutes} m`;
-    
-        client.user.setActivity('customstatus', { type: ActivityType.Custom, state: '[ Uptime: ' + uptimeString + ' ]' });
-    };
-    
-    updateUptime();
-    setInterval(updateUptime, 60 * 1000); // Update every 1 minute
-
     client.logger.info(`[!] The bot has ${client.slash.size} (/) commands`);
     client.logger.info(`[!] ${client.user.username} is now started...`);
     const guilds = client.guilds.cache; // Get all guilds the bot is in
@@ -335,7 +314,26 @@ module.exports = async (client) => {
             ]
         }, true);
     });
-
+    const updateUptime = () => {
+        const uptime = process.uptime();
+        let uptimeString = '';
+    
+        if (uptime >= 24 * 60 * 60) {
+            const days = Math.floor(uptime / (24 * 60 * 60));
+            uptimeString += `${days} d `;
+        }
+        const hours = Math.floor((uptime % (24 * 60 * 60)) / (60 * 60));
+        if (hours > 0) {
+            uptimeString += `${hours} h `;
+        }
+        const minutes = Math.floor((uptime % (60 * 60)) / 60);
+        uptimeString += `${minutes} m`;
+    
+        client.user.setActivity('customstatus', { type: ActivityType.Custom, state: '[ Uptime: ' + uptimeString + ' ]' });
+    };
+    
+    updateUptime();
+    setInterval(updateUptime, 60 * 1000); // Update every 1 minute
     function logPlayer(client, player, ...messages) {
         console.group("Player Event");
             console.log(`| Guild: ${player.guildId} | ${client.guilds.cache.get(player.guildId)?.name}`);
