@@ -88,7 +88,7 @@ async function StartBot() {
     client.lavalink.nodeManager
         .on("raw", (node, payload) => {
             // Handle raw events if needed
-            // client.logger.info(`${client.color.chalkcolor.red('[RAW]')} ${node.id} :: RAW :: ${JSON.stringify(payload)}`);
+            client.logger.info(`${client.color.chalkcolor.red('[RAW]')} ${node.id} :: RAW :: ${JSON.stringify(payload)}`);
         })
         .on("disconnect", (node, reason) => {
             //client.logger.loader(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Disconnected :: ${reason}`);
