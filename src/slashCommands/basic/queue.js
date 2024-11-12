@@ -89,7 +89,9 @@ module.exports = {
                     return `**${index + 1}. ${title}** - ${currentTrack.info.author} | \`${duration}\` | by: \`${requesterTag}\``;
                 }).join('\n');
 
-                embed.addFields({ name: '⏭️ Next Songs:', value: nextSongs });
+                const truncatedNextSongs = nextSongs.length > 1024 ? nextSongs.substring(0, 1021) + '...' : nextSongs;
+
+                embed.addFields({ name: '⏭️ Next Songs:', value: truncatedNextSongs });
             }
 
             const requester = currentTrack.requester;
