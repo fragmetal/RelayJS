@@ -334,6 +334,7 @@ module.exports = async (client) => {
     
     updateUptime();
     setInterval(updateUptime, 60 * 1000); // Update every 1 minute
+    
     function logPlayer(client, player, ...messages) {
         console.group("Player Event");
             console.log(`| Guild: ${player.guildId} | ${client.guilds.cache.get(player.guildId)?.name}`);

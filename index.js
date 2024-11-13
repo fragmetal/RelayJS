@@ -71,14 +71,8 @@ async function StartBot() {
         },
     });
 
-    // if (retrievedNodeInfo) {
-        //console.log("Loaded Lavalink node information from MongoDB:", retrievedNodeInfo);
-    // } else {
-        //console.log("Using default Lavalink node configuration.");
-    // }
-
     client.once('ready', async () => {
-        await client.lavalink.init(client.user.id, "auto");
+        await client.lavalink.init(client.user.id);
     });
 
     /**
@@ -88,11 +82,11 @@ async function StartBot() {
     client.lavalink.nodeManager
         .on("raw", (node, payload) => {
             // Handle raw events if needed
-            client.logger.info(`${client.color.chalkcolor.red('[RAW]')} ${node.id} :: RAW :: ${JSON.stringify(payload)}`);
+            // client.logger.info(`${client.color.chalkcolor.red('[RAW]')} ${node.id} :: RAW :: ${JSON.stringify(payload)}`);
         })
         .on("disconnect", (node, reason) => {
             //client.logger.loader(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Disconnected :: ${reason}`);
-            //client.logger.info(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Disconnected ::`);
+            client.logger.info(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Disconnected ::`);
         })
         .on("connect", (node) => {
             client.logger.info(`${client.color.chalkcolor.red('[LAVALINK]')} ${node.id} :: Connected ::`);
