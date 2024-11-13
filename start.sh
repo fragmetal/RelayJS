@@ -12,7 +12,8 @@ if [ ! -d ".git" ]; then
     git checkout -t origin/main  # Adjust branch name if necessary
 else
     echo "Pulling latest changes..."
-    git pull origin main  # Adjust branch name if necessary
+    git fetch
+    git reset --hard origin/main  # Overwrite local changes
 fi
 
 # Check and install dependencies
@@ -22,6 +23,6 @@ if [ ! -d "node_modules" ]; then
 else
     echo "Dependencies already installed."
 fi
-
+clear
 # Start the application
 npm run start
